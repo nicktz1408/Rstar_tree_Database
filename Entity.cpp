@@ -1,25 +1,29 @@
+#include <string>
+
+using namespace std;
+
 class Entity {
 public:
-    Entity(long long aId, double aLat, double aLng) {
+    Entity(string aId, string aLat, string aLng) {
         id = aId;
         lat = aLat;
         lng = aLng;
     }
 
-    int getId() {
+    string getId() {
         return id;
     }
 
-    double getLat() {
+    string getLat() {
         return lat;
     }
 
-    double getLng() {
+    string getLng() {
         return lng;
     }
 
 private:
-    int id;
-    double lat;
-    double lng;
+    string id;
+    string lat;
+    string lng;
 };
