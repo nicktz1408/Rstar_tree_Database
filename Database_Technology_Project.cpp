@@ -33,6 +33,9 @@ class XMLReader{
             root_node = doc.first_node("osm");
             ofstream myfile;
             myfile.open ("datafile.txt");
+            myfile << "Block0"<<endl;
+            myfile<<"Number of Records: 25572"<<endl;
+            myfile<<"Records format: (id lat lon)"<<endl;
             for (xml_node<> * node = root_node->first_node("node"); node; node = node->next_sibling())
             {
                 if(!(string(node->name())).compare("node")){
@@ -44,9 +47,6 @@ class XMLReader{
                 }
             }
         }
-
-
-
 
     private:
 };
