@@ -1,29 +1,26 @@
 #include <string>
+#include <vector>
 
 using namespace std;
 
 class Entity {
 public:
-    Entity(string aId, string aLat, string aLng) {
+    Entity(string aId, vector <string> aCoords) {
         id = aId;
-        lat = aLat;
-        lng = aLng;
+        coords = aCoords;
     }
 
     string getId() {
         return id;
     }
 
-    string getLat() {
-        return lat;
+    vector<string> getCoords() {
+        return coords;
     }
 
-    string getLng() {
-        return lng;
-    }
+    
 
 private:
     string id;
-    string lat;
-    string lng;
+    vector <string> coords;
 };

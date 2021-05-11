@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <vector>
+#include <stack>
+#include <fstream>
 #include "Entity.cpp"
 
 
@@ -17,9 +19,46 @@ struct Point{
     double y;
 };
 
+vector<string> simple_tokenizer(string s)
+{
+    vector <string> splitString;
+    stringstream ss(s);
+    string word;
+    while (ss >> word) {
+        splitString.push_back(word);
+    }
+    return splitString;
+}
+
 struct Index{
     int numOfBlock;
     int numOfLine;
+    Entity getData() {
+        ofstream inFile;
+        inFile.open ("indexfile.txt");
+        string line;
+        vector<string> sLine;
+        bool found = false;
+        while (getline(inFile, line) && !found){
+            sLine = simple_tokenizer(line);
+            if(atoi(sLine[1]) == numOfBlock){
+                found = true;
+                int i=0;
+                while(i!=numOfLine){
+                    getline(inFile, line);
+                    i++; 
+                }
+                sLine = simple_tokenizer(line);
+                vector<sring> coords;
+                for(int i=1;i<sLine.size();i++){
+                    coords.push_back(sLine[i]);
+                }
+                Entity en(line[0], coords);
+
+            }
+        }
+        return en;
+    }
 }
 
 /**
@@ -34,8 +73,7 @@ class Rectangle{
         Rectangle(Point x, Point y){
             a = x;
             b = y;
-        }
-        
+        }    
 };
 
 class BaseNode{
@@ -61,28 +99,99 @@ class NodeLeaf: BaseNode{
 
 class Rtree{
     public:
-        Rtree(){
+        Rtree(vector <Entity> data){
             Node *root = NULL;
+
+            for(Entity ent : data) {
+                insert(ent);
+            }
         }
 
 
         void insert(Entity newRecord){
             Node *currentNode = root;
             Point p((double) newRecord.getLan(), (double) newRecord.getLon());
-            insertUtility(currentNode, p);
+            NodeLeaf *leaf = getLeafNode(currentNode, p);
+            vector <NodeLeaf *> leafNodes(0);
+
+            for(NodeLeaf *node : leafNodes) {
+                splitNode(node);
+            }
         }
 
-        NodeLeaf *insertUtility(Node *node, Point p){
+        void getLeafNode(Node *node, Point p, vector <NodeLeaf *> &leafNodes){
+            if(typeof(node) == NodeLeaf){
+                leafNodes.push(node);
+            }
+
+            bool contains = false;
+            
             for(int i=0;i<node.size();i++){
                 if(contains(p, node->boundingBoxes[i])){
+                    contains = true;
                     currentNode = node->boundingBoxes[i]->childNode;
-                    i = 0;
+
+                    getLeafNode(currentNode, p, leafNodes);
+                }
+            }
+
+            if(!contains) {
+                Node *chosenChild = findChildHeuristic(node, p);
+                getLeafNode(chosenChild);
+            }
+        }
+
+
+        void splitNode(Node *aNode){
+            if(aNode->boundingBoxes.size() == M) {
+                Node *parent = aNode->getParent();
+                Node *otherNode = new Node();
+
+                splitHeuristic(aNode, otherNode);
+
+                parent->boundingBoxes.push_back(otherNode);
+                splitNode(parent);
+            }
+        }
+
+        Node *findChildHeuristic(Node *parentNode, Point p) {
+            return parentNode->boundingBoxes[0]->childNode;
+        }
+
+        void splitHeuristic(Node *node, Node *otherNode) {
+
+        }
+
+        void rangeQueryUtility(Node *node, Rectangle range, vector <Entity> &data){
+            if(typeof(node) == NodeLeaf){
+                vector <Index> indexData = node->arr;
+
+                for(Index index : indexData) {
+                    Entity entity = index.getData();
+                    Point currPoint = new Point(entity.getCoords()[0], entity.getCoords[1]);
+
+                    if(contains(currPoint, range)) {
+                        data.push_back(entity);
+                    }
+                }
+            }
+            for(int i=0;i<M;i++){
+                if(overlap(range, node->boundingBoxes[i])){
+                    currentNode = node->boundingBoxes[i]->childNode;
+
+                    rangeQueryUtility(currentNode, range, data);
                 }
             }
         }
 
 
-        vector<Entity> rangeQuery(double range);
+        vector<Entity> rangeQuery(Rectangle range){
+            vector<Entity> answer;
+            for(int i=0;i<M;i++){
+                
+            }
+
+        }
         vector<Entity> knnQuery(int neighbors);
 
 
