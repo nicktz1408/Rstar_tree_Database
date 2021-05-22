@@ -76,29 +76,95 @@ class Rectangle{
         }    
 };
 
-class BaseNode{
-    BaseNode();
-}
+class Node{
+    int capacity;
+    int blockId;
+    bool isLeaf;
+    vector<int> rectangles;
+    Rectangle boundingBox;
+    Node();
+    Node(Rectangle bounding, bool isLeafNode, vector<int> rec){
+        isLeaf = isLeafNode;
+        rectangles = rec;
+        boundingBox = bounding;
+    }
 
+    void addChild(int blockID){
+        rectangles[capacity] = blockIDl;
+        capacity++;
+    }
+
+    void modifiedNode(){
+        IndexfileUtilities util();
+        util.modifiedBlockId(*this, blockId);
+    }
+};
+/**
 class Node: BaseNode{
 
-    Node(Point a , Point b) {
+    Node(Point a, Point b) {
         Rectangle boundingBox(a, b);
         rectangles = vector <int>(M);
     }
 
     vector<int> rectangles;
     Rectangle boundingBox;
-}
+};
+
+
+
 class NodeLeaf: BaseNode{
-    NodeLeaf() {
-        arr = vector <Index>(M);
-        points = (Point *) malloc(M*sizeof(Point));
+    NodeLeaf(Point a, Point b) {
+        entities = vector <int>(M);
+        Rectangle boundingBox(a, b);
     }
 
-    vector<Index> arr;
-    Point *points;
-}
+    vector <int> entities;
+    Rectangle boundingBox;
+};
+**/
+
+class IndexfileUtilities {
+public:
+    int nextId = 1;
+    IndexfileUtilities();
+
+    int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<int> rec){
+        fstream myfile;
+        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary | ios::end);
+        Node newNode(boundingBox, isLeafNode, rec);
+        myfile.write((char *) &newNode, sizeof(Node));
+        return nextId++;
+    }
+
+    void modifiedBlockId(Node aNode, int id){
+        fstream myfile;
+        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
+        int blockStart = (id - 1) * sizeof(Node);
+        myFile.seekp(blockStart, ios::beg);
+        myfile.write((char *) &newNode, sizeof(Node));
+    }
+
+    Node getNodeByBlockId(int id) {
+        return getNodeByBlockIdHelper(id);
+    }
+
+private:
+    Node getNodeByBlockIdHelper(int id) {
+        fstream myfile;
+        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
+        int blockStart = (id - 1) * sizeof(Node);
+        myFile.seekg(blockStart, ios::beg);
+        
+        Node node();
+
+        myFile.read ((char*) &node, sizeof (Node));
+        myFile.close();
+        return node;
+    }
+};
+
+
 
 
 class Rtree{
