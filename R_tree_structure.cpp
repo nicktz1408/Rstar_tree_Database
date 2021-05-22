@@ -149,6 +149,22 @@ public:
         return getNodeByBlockIdHelper(id);
     }
 
+    Record getRecordFromDatafile(int entityNumber){
+        Record output;
+
+        int blockNum = entityNumber >> 27;
+        int recordNum = (entityNumber << 5) >> 5;
+        ifstream myFile;
+        myFile.open("datafile.dat",ios::in | ios::binary );
+
+        int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
+        myFile.seekg(index, myFile.beg);
+        myFile.read(output, sizeof(Record));
+
+        myFile.close();
+        return output;
+    }
+
 private:
     Node getNodeByBlockIdHelper(int id) {
         fstream myfile;
@@ -169,12 +185,53 @@ private:
 
 class Rtree{
     public:
-        Rtree(vector <Record> data){
+        Rtree(string filename){
             Node *root = NULL;
+            fstream readFile;
+            readFile.open(filename, ios::out |ios::binary);
 
-            for(Entity ent : data) {
-                insert(ent);
+            int currSizeInFile = 0;
+            bool blockEnds = true;
+
+            while(currSizeInBlock <= 32768) {
+                if(blockEnds) {
+                    currSizeInFile += 2;
+                    blockEnds = false;
+                }
+
+                readFile.seekg(currSizeInFile);
+
+                Record rec;
+                readFile.read(&rec, sizeof(Record));
+
+                double lan = rec.getLan();
+                double lng = rec.getLong();
+                Point p(lan, lng);
+                int blockId = (currSizeInFile - 1) / 32770 + 1;
+                int line = (currSizeInFile % 32770 - 2) / sizeof(Record) + 1;
+                int entityNumber = getEntityNumber(blockId, line);
+
+                insert(p, entityNumber);
+                
+
+                currSizeInFile += sizeof(Record);
+
+                if(currSizeInBlock % 32770 == 0) {
+                    blockEnds = true;
+                }
             }
+
+            for(Record rec : data) {
+                insert(rec);
+            }
+        }
+
+        int getEntityNumber(int blockId, int line) {
+            int entityNumber = 0;
+            entityNumber |= (blockId << 27);
+            entityNumber |= line;
+
+            return entityNumber;
         }
 
 
@@ -225,38 +282,36 @@ class Rtree{
         }
 
 
-
-    
-
-
-
-
-        Node *findChildHeuristic(Node *parentNode, Point p) {
-            return parentNode->boundingBoxes[0]->childNode;
-        }
+arr
 
         void splitHeuristic(Node *node, Node *otherNode) {
 
         }
 
-        void rangeQueryUtility(Node *node, Rectangle range, vector <Entity> &data){
-            if(typeof(node) == NodeLeaf){
-                vector <Index> indexData = node->arr;
+        void rangeQueryUtility(Node *node, Rectangle range, vector <Record> &data){
+            IndexfileUtilities util();
 
-                for(Index index : indexData) {
-                    Entity entity = index.getData();
-                    Point currPoint = new Point(entity.getCoords()[0], entity.getCoords[1]);
+            if(node->isLeaf){
+                vector <int> indexData = node->rectangles;
+
+                for(int entityNumber : indexData) {
+                    Record record = util.getRecordFromDatafile(entityNumber);
+                    
+                    Point currPoint = new Point(record.getCoords()[0], record.getCoords[1]);
 
                     if(contains(currPoint, range)) {
-                        data.push_back(entity);
+                        data.push_back(record);
                     }
                 }
             }
-            for(int i=0;i<M;i++){
-                if(overlap(range, node->boundingBoxes[i])){
-                    currentNode = node->boundingBoxes[i]->childNode;
 
-                    rangeQueryUtility(currentNode, range, data);
+            for(int i=0;i<node->capacity;i++){
+                int currChildBlockId = node->rectangles[i];
+
+                Node *child = util.getNodeByBlockId();
+
+                if(overlap(range, child->boundingBox)){
+                    rangeQueryUtility(child, range, data);
                 }
             }
         }
