@@ -81,10 +81,14 @@ class BaseNode{
 }
 
 class Node: BaseNode{
-    Node() {
-        boundingBoxes = vector <Rectangle *>(M);
+
+    Node(Point a , Point b) {
+        Rectangle boundingBox(a, b);
+        rectangles = vector <int>(M);
     }
-    vector<Rectangle *> boundingBoxes;
+
+    vector<int> rectangles;
+    Rectangle boundingBox;
 }
 class NodeLeaf: BaseNode{
     NodeLeaf() {
@@ -99,7 +103,7 @@ class NodeLeaf: BaseNode{
 
 class Rtree{
     public:
-        Rtree(vector <Entity> data){
+        Rtree(vector <Record> data){
             Node *root = NULL;
 
             for(Entity ent : data) {
@@ -108,7 +112,7 @@ class Rtree{
         }
 
 
-        void insert(Entity newRecord){
+        void insert(Record newRecord){
             Node *currentNode = root;
             Point p((double) newRecord.getLan(), (double) newRecord.getLon());
             NodeLeaf *leaf = getLeafNode(currentNode, p);
@@ -153,6 +157,13 @@ class Rtree{
                 splitNode(parent);
             }
         }
+
+
+
+    
+
+
+
 
         Node *findChildHeuristic(Node *parentNode, Point p) {
             return parentNode->boundingBoxes[0]->childNode;

@@ -1,26 +1,25 @@
-#include <string>
 #include <vector>
 
 using namespace std;
 
-class Entity {
+class Record{
 public:
-    Entity(string aId, vector <string> aCoords) {
+    Record(long long aId, vector <double> aCoords) {
         id = aId;
         coords = aCoords;
     }
 
-    string getId() {
+    long long getId() {
         return id;
     }
 
-    vector<string> getCoords() {
+    vector<double> getCoords() {
         return coords;
     }
 
     
 
 private:
-    string id;
-    vector <string> coords;
+    long long id;
+    vector <double> coords;
 };

@@ -34,42 +34,43 @@ class XMLReader{
         
             root_node = doc.first_node("osm");
             ofstream myfile;
-            myfile.open ("datafile.txt");
+            myfile.open ("datafile.dat", ios::out | ios::binary);
 
             int currSize = 0;
 
-            int i = 2;
-            myfile<<"Block 1"<<endl;
+            short int i = 1;
+            myfile.write((char *) &i, sizeof(short));
+            i++;
             for (xml_node<> * node = root_node->first_node("node"); node; node = node->next_sibling())
             {
                 if(!(string(node->name())).compare("node")){
-                    vector<string> latLon(2);
-                    latLon[0] = string(node->first_attribute("lat")->value());
-                    latLon[1] = string(node->first_attribute("lon")->value());
-                    string id = string(node->first_attribute("id")->value());
-                    Entity entity(id, latLon);
+                    vector<double> latLon(2);
+                    latLon[0] = strtod(node->first_attribute("lat")->value(), NULL);
+                    latLon[1] = strtod(node->first_attribute("lon")->value(), NULL);
+                    long long id = atoll(node->first_attribute("id")->value());
+                    Record record(id, latLon);
+                
+                    /**
                     cout << "\nNode id =   " << node->first_attribute("id")->value();
                     cout << " Lat =   " << node->first_attribute("lat")->value();
                     cout << " Lon =   " << node->first_attribute("lon")->value();
-                    currSize += latLon[0].length();// sizeof(latLon[0]);
-                    currSize += latLon[1].length();
-                    currSize += id.length();
-                    //cout<<"The size of the id is:"<<sizeof(id)<<endl;
+                    **/
+
+                    currSize += sizeof(record);
+                    
                     if(currSize > blockSize){
                         cout<<"The size of the block is "<<currSize<<endl;
                         currSize = 0;
-                        currSize += sizeof(latLon[0]);
-                        currSize += sizeof(latLon[1]);
-                        currSize += sizeof(id);
-                        myfile<<"Block "<<i<<endl;
+                        currSize += sizeof(record);
+                        
+                        myfile.write((char *) &i, sizeof(short));
                         i++;
                     }
 
-                    myfile << string(node->first_attribute("id")->value())<< " "<<string(node->first_attribute("lat")->value())<<" "<<string(node->first_attribute("lon")->value())<<endl;
+                    myfile.write((char *) &record, sizeof(Record));
                     
                 }
             }
-            cout << "The number of records are " <<j<<endl;
         }
 
     private:
