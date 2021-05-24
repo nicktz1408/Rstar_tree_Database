@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <fstream>
+#include <utility>
 #include "Entity.cpp"
 
 
@@ -78,9 +79,10 @@ class Rectangle{
 
 class Node{
     int capacity;
+    int parentId;
     int blockId;
     bool isLeaf;
-    vector<int> rectangles;
+    vector<pair<int, Rectangle>> rectangles;
     Rectangle boundingBox;
     Node();
     Node(Rectangle bounding, bool isLeafNode, vector<int> rec){
@@ -98,6 +100,12 @@ class Node{
         IndexfileUtilities util();
         util.modifiedBlockId(*this, blockId);
     }
+    void updateBoundingBox(Rectangle rec){
+        boundingBox = rec;
+        IndexfileUtilities util();
+        updateBounds(this, boundingBox);
+    }
+
 };
 /**
 class Node: BaseNode{
@@ -165,6 +173,25 @@ public:
         return output;
     }
 
+
+    void updateBounds(Node *node, Rectangle newBoundingBox){
+        node->boundingBox = newBoundingBox;
+        int ndId = node->blockId;
+        int prnId = node->parentId;
+
+        if(prnId != NULL){
+            Node parentNode = this->getNodeByBlockId(prnId);
+            for(int i=0;i<parentNode.capacity;i++){
+                if(parentNode.rectangles[i].first == ndId){
+                    parentNode.rectangles[i].second = newBoundingBox;
+                    modifiedBlockId(parentNode, prnId);
+
+                }
+            }
+
+        }
+    }
+
 private:
     Node getNodeByBlockIdHelper(int id) {
         fstream myfile;
@@ -185,7 +212,13 @@ private:
 
 class Rtree{
     public:
+        IndexfileUtilities *util;
         Rtree(string filename){
+            util = new IndexfileUtilities();
+
+
+
+
             Node *root = NULL;
             fstream readFile;
             readFile.open(filename, ios::out |ios::binary);
@@ -235,28 +268,51 @@ class Rtree{
         }
 
 
-        void insert(Record newRecord){
-            Node *currentNode = root;
-            Point p((double) newRecord.getLan(), (double) newRecord.getLon());
-            NodeLeaf *leaf = getLeafNode(currentNode, p);
-            vector <NodeLeaf *> leafNodes(0);
+        void insert(Point p, int entNum){
+            Node *root = util.getNodeByBlockId(1);
+            vector <Node *> leafNodes(0);
+            NodeLeaf *leaf = getLeafNode(root, p, leafNodes);
+            
 
-            for(NodeLeaf *node : leafNodes) {
+            for(Node *node : leafNodes) {
                 splitNode(node);
             }
         }
 
-        void getLeafNode(Node *node, Point p, vector <NodeLeaf *> &leafNodes){
-            if(typeof(node) == NodeLeaf){
-                leafNodes.push(node);
+
+        #TODO 
+        float calculateNewBound(Point p, Rectangle rec){
+
+        }
+
+        #TODO
+        Node* findChildHeuristic(Node node, Point p){
+            Node newNode = util->getNodeByBlockId(node.rectangles[0].first);
+            if(newNode.isLeaf){
+
+            }else{
+
+            }
+
+        }
+
+
+
+
+
+
+        void getLeafNode(Node *node, Point p, vector <Node *> &leafNodes){
+            if(node->isLeaf){
+                leafNodes.push_back(node);
             }
 
             bool contains = false;
             
-            for(int i=0;i<node.size();i++){
-                if(contains(p, node->boundingBoxes[i])){
+            for(int i=0;i<node->capacity;i++){
+                if(contains(p, node->rectangles[i].second)){
                     contains = true;
-                    currentNode = node->boundingBoxes[i]->childNode;
+                    int childId = node->rectangles[i].first;
+                    currentNode = util->getNodeByBlockId(childId);
 
                     getLeafNode(currentNode, p, leafNodes);
                 }
@@ -270,19 +326,20 @@ class Rtree{
 
 
         void splitNode(Node *aNode){
-            if(aNode->boundingBoxes.size() == M) {
-                Node *parent = aNode->getParent();
-                Node *otherNode = new Node();
+            if(aNode->capacity == M) {
+                int parentId = aNode->parentId;
+                Node *parent = aNode->getParent(parentId);
+                Node *otherNode = util->getNodeByBlockId(util->newBlockID());
 
                 splitHeuristic(aNode, otherNode);
 
-                parent->boundingBoxes.push_back(otherNode);
+                parent->addChild(otherNode->blockId);
                 splitNode(parent);
             }
         }
 
 
-arr
+
 
         void splitHeuristic(Node *node, Node *otherNode) {
 
