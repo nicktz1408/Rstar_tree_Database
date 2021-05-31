@@ -3,12 +3,14 @@
 #include <stack>
 #include <fstream>
 #include <utility>
+#include <limits>
 #include "Entity.cpp"
 
 
 
 #define M 50
 #define m 25
+#define dimension 2
 
 using namespace std;
 
@@ -74,7 +76,10 @@ class Rectangle{
         Rectangle(Point x, Point y){
             a = x;
             b = y;
-        }    
+        }
+        double getMargin(){
+            return 2*(b.x - a.x) + 2*(b.y - a.y);
+        }  
 };
 
 class Node{
@@ -280,20 +285,81 @@ class Rtree{
         }
 
 
-        #TODO 
-        float calculateNewBound(Point p, Rectangle rec){
+    
+        Rectangle calculateNewBound(Point p, Rectangle rec){
+            Rectangle newRectangle;
+            pair<int, int> a, b;
 
+            newRectangle.a.x = min(p.x, rec.a.x);
+            newRectangle.b.x = max(p.x, rec.b.x);
+
+            newRectangle.a.y = min(p.y, rec.a.y);
+            newRectangle.a.y = max(p.y, rec.b.y);
+
+            return newRectangle;
+            
         }
 
-        #TODO
+
+
+
+        double calculateOverlap(Rectangle a, Rectangle b){
+            double overlap = 0;
+
+            Point firstPoint, secondPoint;
+            firstPoint.x = max(a.a.x, b.a.x);
+            firstPoint.y = max(a.a.y, b.a.y);
+
+            secondPoint.x = min(a.b.x, b.b.x);
+            secondPoint.y = min(a.b.y, b.b.y);
+            
+            overlap = max(secondPoint.x - firstPoint.x, 0) * max(secondPoint.y - firstPoint.y, 0);
+
+
+            return overlap;
+        }
+
+
+
+    
         Node* findChildHeuristic(Node node, Point p){
-            Node newNode = util->getNodeByBlockId(node.rectangles[0].first);
-            if(newNode.isLeaf){
+            Node childNode = util->getNodeByBlockId(node.rectangles[0].first);
+            int minIndexRec = 0;
+            if(childNode.isLeaf){
+                vector<pair<int, Rectangle>> allRec = node.rectangles;
+                double minOverlap = DBL_MAX;
+                for(int i=0;i<node.capacity;i++){
+                    double sum = 0;
+                    Rectangle extendedRec = calculateNewBound(p, allRec[i]);
+                    for(int j=0;j<node.capacity;j++){
+                        if(i!=j){
+                            sum +=  calculateOverlap(extendedRec, allRec[j]);
+                        }
+                    }
+                    if(sum < minOverlap){
+                        minOverlap = sum;
+                        minIndexRec = i;
+                    }
+                    
+                }
 
             }else{
-
+                vector<pair<int, Rectangle>> allRec = node.rectangles;
+                double minOverlap = calculateOverlap(all);
+                for(int i=0;i<node.capacity;i++){
+                    double sum = 0;
+                    Rectangle extendedRec = calculateNewBound(p, allRec[i]);
+                
+                    if(calculateOverlap(extendedRec, allRec[i]) < minOverlap){
+                        minOverlap = sum;
+                        minIndexRec = i;
+                    }
+                    
+                }
             }
-
+            
+            Node *nextNode = util.getNodeByBlockId(node.rectangles[minIndexRec].first);
+            return nextNode;
         }
 
 
@@ -338,6 +404,62 @@ class Rtree{
             }
         }
 
+
+        Rectangle constructBig(vector <Rectangle> groupOfRectangles){
+            Rectangle out = groupOfRectangles[0];
+            for(int i=1;i<groupOfRectangles.size();i++){
+                out = calculateNewBound(groupOfRectangles[i].a, out);
+                out = calculateNewBound(groupOfRectangles[i].b, out);
+            }
+            return out;
+        }
+
+        double marginHeuristic(vector <Rectangle> g1, vector<Rectangle> g2){
+            double margin1, margin2;
+
+            margin1 = constructBig(g1).getMargin();
+            margin2 = constructBig(g2).getMargin();
+
+            return margin1 + margin2;
+        }
+
+
+
+        int ChooseSplitAxis(vector<pair<int, Rectangle>> recs){
+            for(int axis = 0;axis < dimension; axis++){
+                sort(recs.begin(), recs.end(), [](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
+                {
+                    if(axis==0){
+                        if(lhs.second.a.x == rhs.second.a.x){
+                            return lhs.second.b.x < rhs.second.b.x;
+                        }
+                        return lhs.second.a.x < rhs.second.a.x;
+                    }
+                    if(axis==1){
+                        if(lhs.second.a.y == rhs.second.a.y){
+                            return lhs.second.b.y < rhs.second.b.y;
+                        }
+                        return lhs.second.a.y < rhs.second.a.y;
+                    }
+                });
+                double minCost = DBL_MAX;
+                double totalCost = 0;
+                int k = 1;
+                while(m-1+k < M){
+                    vector<Rectangle> group1, group2;
+                    int i;
+                    for(i=0;i<m-1+k;i++){
+                        group1.push_back(recs[i]);
+                    }
+                    for(;i<recs.size();i++){
+                        group2.push_back(recs[i]);
+                    }
+                    totalCost += marginHeuristic(group1, group2);
+                    
+                }
+                minCost = min(minCost, currCost);
+            }
+        }
 
 
 
