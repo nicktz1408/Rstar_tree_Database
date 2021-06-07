@@ -14,6 +14,10 @@
 
 using namespace std;
 
+
+
+int rootId = 1;
+
 /**
 ** Struct for Points represantation
 **/
@@ -71,7 +75,7 @@ class Rectangle{
     public:
         Point a;
         Point b;
-        BaseNode *childNode;
+        Node *childNode;
         Rectangle();
         Rectangle(Point x, Point y){
             a = x;
@@ -79,6 +83,9 @@ class Rectangle{
         }
         double getMargin(){
             return 2*(b.x - a.x) + 2*(b.y - a.y);
+        }
+        double getArea(){
+            return (b.x - a.x)*(b.y - a.y);
         }  
 };
 
@@ -90,7 +97,7 @@ class Node{
     vector<pair<int, Rectangle>> rectangles;
     Rectangle boundingBox;
     Node();
-    Node(Rectangle bounding, bool isLeafNode, vector<int> rec){
+    Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangles>> rec){
         isLeaf = isLeafNode;
         rectangles = rec;
         boundingBox = bounding;
@@ -142,7 +149,7 @@ public:
     int nextId = 1;
     IndexfileUtilities();
 
-    int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<int> rec){
+    int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<pair<int, Rectangles>> rec){
         fstream myfile;
         myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary | ios::end);
         Node newNode(boundingBox, isLeafNode, rec);
@@ -217,6 +224,7 @@ private:
 
 class Rtree{
     public:
+
         IndexfileUtilities *util;
         Rtree(string filename){
             util = new IndexfileUtilities();
@@ -274,7 +282,7 @@ class Rtree{
 
 
         void insert(Point p, int entNum){
-            Node *root = util.getNodeByBlockId(1);
+            Node *root = util.getNodeByBlockId(rootId);
             vector <Node *> leafNodes(0);
             NodeLeaf *leaf = getLeafNode(root, p, leafNodes);
             
@@ -391,25 +399,42 @@ class Rtree{
         }
 
 
-        void splitNode(Node *aNode){
-            if(aNode->capacity == M) {
+          void splitNode(Node *aNode){
+            if(aNode->capacity == M+1) {
+                pair<vector<pair<int, Rectangle>>, vector<pair<int ,Reactangle>>> a = splitHeuristic(aNode);
+                vector<pair<int, Rectangle>> fir = a.first;
+                vector<pair<int, Rectangle>> sec = a.second;
+
+
+                aNode->rectangles = fir;
+                aNode->modifiedNode();
+
+                
+                int otherNodeId = util->newBlockID(constructBig(sec),aNode->isLeaf, sec);
+                Node *otherNode = util->getNodeByBlockId(otherNodeId);
+
                 int parentId = aNode->parentId;
-                Node *parent = aNode->getParent(parentId);
-                Node *otherNode = util->getNodeByBlockId(util->newBlockID());
-
-                splitHeuristic(aNode, otherNode);
-
-                parent->addChild(otherNode->blockId);
-                splitNode(parent);
-            }
+                if(parentId == -1){
+                    rootId = util->newBlockID(constructBig(sec),aNode->isLeaf, sec);
+                    Node *rootNode = util->getNodeByBlockId(rootId);
+                    rootNode->addChild(aNode->blockId);
+                    rootNode->addChild(otherNodeId);
+                    rootNode->modifiedNode();
+                }else{
+                    Node *parentNode = util->getNodeByBlockId(parentId);
+                    parentNode->addChild(otherNodeId);
+                    parentNode->modifiedNode();
+                    splitNode(parentNode);
+                }
+            } 
         }
 
 
-        Rectangle constructBig(vector <Rectangle> groupOfRectangles){
-            Rectangle out = groupOfRectangles[0];
+        Rectangle constructBig(vector <pair<int, Rectangle>> groupOfRectangles){
+            Rectangle out = groupOfRectangles[0].second;
             for(int i=1;i<groupOfRectangles.size();i++){
-                out = calculateNewBound(groupOfRectangles[i].a, out);
-                out = calculateNewBound(groupOfRectangles[i].b, out);
+                out = calculateNewBound(groupOfRectangles[i].second.a, out);
+                out = calculateNewBound(groupOfRectangles[i].second.b, out);
             }
             return out;
         }
@@ -423,9 +448,65 @@ class Rtree{
             return margin1 + margin2;
         }
 
+        double areaHeuristic(vector <pair<int, Rectangle>> g1, vector<pair<int ,Rectangle>> g2){
+            double area1, area2;
+
+            area1 = constructBig(g1).getArea();
+            area2 = constructBig(g2).getArea();
+
+            return area1 + area2;
+        }
+
+
+        pair<vector<pair< int, Rectangle>>, vector<pair<int ,Reactangle>>> ChooseSplitIndex(vector<pair<int, Rectangle>> recs, int axis){
+            sort(recs.begin(), recs.end(), [](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
+                {
+                    if(axis==0){
+                        if(lhs.second.a.x == rhs.second.a.x){
+                            return lhs.second.b.x < rhs.second.b.x;
+                        }
+                        return lhs.second.a.x < rhs.second.a.x;
+                    }
+                    if(axis==1){
+                        if(lhs.second.a.y == rhs.second.a.y){
+                            return lhs.second.b.y < rhs.second.b.y;
+                        }
+                        return lhs.second.a.y < rhs.second.a.y;
+                    }
+                });
+                vector<pair<int, Rectangle>> minGroup1, minGroup2;
+                double minCost = DBL_MAX;
+                int k = 1;
+                while(m-1+k < M){
+                    vector<pair<int, Rectangle>> group1, group2;
+                    int i;
+                    for(i=0;i<m-1+k;i++){
+                        group1.push_back(recs[i]);
+                    }
+                    for(;i<recs.size();i++){
+                        group2.push_back(recs[i]);
+                    }
+                    int currCost = areaHeuristic(group1, group2);
+        
+                    if(currCost < minCost){
+                        minCost = currCost;
+                        minGroup1 = group1;
+                        minGroup2 = group2;
+                    }
+                }
+                
+            }
+            pair<vector<pair<int,Rectangle>>, vector<pair<int,Reactangle>>> out;
+            out.first = minGroup1;
+            out.second = minGroup2;
+            return out;
+        }
+
 
 
         int ChooseSplitAxis(vector<pair<int, Rectangle>> recs){
+            int minAxis;
+            double minCost = DBL_MAX;
             for(int axis = 0;axis < dimension; axis++){
                 sort(recs.begin(), recs.end(), [](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
                 {
@@ -442,7 +523,7 @@ class Rtree{
                         return lhs.second.a.y < rhs.second.a.y;
                     }
                 });
-                double minCost = DBL_MAX;
+                
                 double totalCost = 0;
                 int k = 1;
                 while(m-1+k < M){
@@ -457,15 +538,25 @@ class Rtree{
                     totalCost += marginHeuristic(group1, group2);
                     
                 }
-                minCost = min(minCost, currCost);
+                
+                if(currCost < minCost){
+                    minCost = currCost;
+                    minAxis = axis;
+                }
             }
+            return minAxis;
+        }
+        
+
+
+
+        pair<vector<pair<int, Rectangle>>, vector<pair<int, Reactangle>>> splitHeuristic(Node *node) {
+            int axis = ChooseSplitAxis(node->rectangles);
+            return ChooseSplitIndex(node->rectangles, axis);
+
         }
 
 
-
-        void splitHeuristic(Node *node, Node *otherNode) {
-
-        }
 
         void rangeQueryUtility(Node *node, Rectangle range, vector <Record> &data){
             IndexfileUtilities util();
@@ -496,6 +587,8 @@ class Rtree{
         }
 
 
+
+        //TODO
         vector<Entity> rangeQuery(Rectangle range){
             vector<Entity> answer;
             for(int i=0;i<M;i++){
@@ -503,6 +596,8 @@ class Rtree{
             }
 
         }
+
+        ///TODO
         vector<Entity> knnQuery(int neighbors);
 
 
