@@ -558,14 +558,15 @@ class Rtree{
 
 
 
-        void rangeQueryUtility(Node *node, Rectangle range, vector <Record> &data){
+        void rangeQueryUtility(int blockId, Rectangle range, vector <Record> &data){
             IndexfileUtilities util();
+            Node *node = util.getNodeByBlockId(blockId);
 
             if(node->isLeaf){
-                vector <int> indexData = node->rectangles;
+                vector<pair<int, Rectangle>> indexData = node->rectangles;
 
-                for(int entityNumber : indexData) {
-                    Record record = util.getRecordFromDatafile(entityNumber);
+                for(pair<int, Rectangle> entity : indexData) {
+                    Record record = util.getRecordFromDatafile(entity.first);
                     
                     Point currPoint = new Point(record.getCoords()[0], record.getCoords[1]);
 
@@ -576,29 +577,50 @@ class Rtree{
             }
 
             for(int i=0;i<node->capacity;i++){
-                int currChildBlockId = node->rectangles[i];
+                pair<int, Rectangle> currChildBlock = node->rectangles[i];
 
-                Node *child = util.getNodeByBlockId();
-
-                if(overlap(range, child->boundingBox)){
-                    rangeQueryUtility(child, range, data);
+                if(overlap(range, currChildBlock.second)){
+                    rangeQueryUtility(currChildBlock.first, range, data);
                 }
             }
         }
 
 
 
-        //TODO
-        vector<Entity> rangeQuery(Rectangle range){
-            vector<Entity> answer;
-            for(int i=0;i<M;i++){
-                
-            }
-
+        
+        vector<Record> rangeQuery(Rectangle range){
+            vector<Record> answer;
+            rangeQueryUtility(rootId, range, answer);
+            return answer;
         }
 
-        ///TODO
-        vector<Entity> knnQuery(int neighbors);
+
+        void knnQueryUtility(int blockId,Rectangle point, int numberOfNeighbors, vector <Record> &data){
+            IndexfileUtilities util();
+            Node *node = util.getNodeByBlockId(blockId);
+
+            double nearestDist = DBL_MAX;
+            Rectangle nearestRec;
+
+            if(node->isLeaf){
+                for(int i=0;i<node->capacity;i++){
+                    double dist = MinDistance(node->rectangles[i].second, point);
+                    if(dist < nearestDist){
+                        nearestDist = dist;
+                        nearestRec = node->rectangles[i].second;
+                    }
+                }
+            }else{
+                
+            }
+        }
+
+        
+        vector<Record> knnQuery(Rectangle point, int K){
+            vector<Record> answer;
+            knnQueryUtility(rootId, point,  K, answer);
+            return answer;
+        }
 
 
 
@@ -615,6 +637,59 @@ class Rtree{
         bool contains(Point m, Rectangle n){
             return ((m.x >= n.a.x && m.x <= n.b.x) && (m.y >= n.a.y && m.y <= n.b.y));
         }
+
+
+        double euclideanDistancePoints(Point a, Point b){
+            double distance = 0
+            for(int i=0;i<a.dim.size();i++){
+                distance += math.pow(a.dim[i] - b.dim[i], 2);
+            }
+            return distance;
+        }
+
+        double MinDistance(Rectangle rec, Point point){
+            double totalDistance = 0;
+            for(int i=0;i<point.dim.size();i++){
+                int from = rec.a.dim[i];
+                int to = rec.b.dim[i];
+                int curr = point.dim[i];
+
+                if(curr < from){
+                    totalDistance += math.pow(from - curr, 2);
+                }else if(curr > to){
+                    totalDistance += math.pow(to - curr, 2);
+                }
+            }
+            return totalDistance;
+        }
+
+        double MinMaxDistance(Rectangle rec, Point point){
+            double minDistance = 0;
+            for(int i=0;i<point.dim.size();i++){
+                double currDistance = 0;
+                double from = rec.a.dim[i];
+                double to = rec.b.dim[i];
+                double curr = point.dim[i];
+
+                currDistance += min(math.pow(from - curr, 2), math.pow(to - curr, 2));
+
+                for(int j=0;j<point.dim.size();j++){
+                    if(i!=j){
+                        from = rec.a.dim[j];
+                        to = rec.b.dim[j];
+                        curr = point.dim[j];
+                        currDistance += max(math.pow(from - curr, 2), math.pow(to - curr, 2));
+                    }
+                    
+                }
+
+
+
+                minDistance = min(minDistance, currDistance);
+            }
+            return minDistance;
+        }
+
 
 };
 
