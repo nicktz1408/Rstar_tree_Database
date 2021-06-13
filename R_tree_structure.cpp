@@ -26,6 +26,12 @@ struct Point{
     double y;
 };
 
+struct ABLinformation{
+    double minDist;
+    double minMaxDist;
+    int index;
+};
+
 vector<string> simple_tokenizer(string s)
 {
     vector <string> splitString;
@@ -594,32 +600,122 @@ class Rtree{
             return answer;
         }
 
+        vector<struct ABLinformation> combine(vector<struct ABLinformation> &a, vector<struct ABLinformation> &b){
+            vector<struct ABLinformation> merged;
+            for(int i=0;i<a.size(), i++;){
+                merged.push_back(a[i]);
+                merged.push_back(b[i]);
+            }
+            sort(merged.begin(), merged.end()[](struct ABLinformation &lhs, struct ABLinformation &rhs)
+            {
+                 return lhs.minMaxDist < rhs.minMaxDist;
+            });
+            merged.resize(a.size());
+            return merged;
+        }
 
-        void knnQueryUtility(int blockId,Rectangle point, int numberOfNeighbors, vector <Record> &data){
+
+        vector<pair<double, Rectangle>> knnQueryUtility(int blockId, Rectangle point, int K){
             IndexfileUtilities util();
             Node *node = util.getNodeByBlockId(blockId);
 
-            double nearestDist = DBL_MAX;
-            Rectangle nearestRec;
 
             if(node->isLeaf){
+                double nearestDist = DBL_MAX;
+                vector<pair<double, Rectangle>> output;
+
                 for(int i=0;i<node->capacity;i++){
-                    double dist = MinDistance(node->rectangles[i].second, point);
-                    if(dist < nearestDist){
-                        nearestDist = dist;
-                        nearestRec = node->rectangles[i].second;
+                    double dist = MinMaxDistance(node->rectangles[i].second, point);
+                    
+                    output.push_back({ dist, node->rectangles[i].second });
+                }
+                sort(output.begin(), output.end());
+                output.resize(K);
+                return output;
+            }else{
+                vector<struct ABLinformation> ablInfo = getABLinformation(node, point);
+                vector<struct ABLinformation> ablFiltered;
+                double cutoff = ablInfo[0].minMaxDist;
+                copy_if (ablInfo.begin(), ablInfo.end(), back_inserter(ablFiltered), [](struct ABLinformation abl){return abl.minDistance <= cutoff;} );
+
+                vector<struct ABLinformation> answer;
+                for(int i=0;i<ablFiltered.size();i++){
+                    vector<struct ABLinformation> currPq = dfs(ablFiltered[i], node->rectangles[ablFiltered[i].index].first);
+                    answer = combine(answer, currPq);
+                    int maxFromAll = answer[K-1].getMin;
+                    vector<struct ABLinformation> tempAnswer;
+                    copy_if (answer.begin(), answer.end(), back_inserter(tempAnswer), [](struct ABLinformation abl){return abl.minDistance <= maxFromAll;} );
+                    answer = tempAnswer;
+                    
+                }
+                return answer;
+
+            }
+
+            
+        }
+
+        vector<struct ABLinformation> getABLinformation(Node *node, Point point){
+            vector<struct ABLinformation> output;
+            for(int i=0;i<node->capacity;i++){
+                struct abl;
+                abl.minDist = MinDistance(node->rectangles[i], point);
+                abl.minMaxDist = MinMaxDistance(node->rectangles[i], point);
+                abl.index = i;
+                output.push_back(abl);
+            }
+            sort(output.begin(), output.end(),[](struct ABLinformation &lhs, struct ABLinformation &rhs)
+            {
+                 return lhs.minMaxDist < rhs.minMaxDist;
+            });
+            return ouput;
+
+        }
+
+        customAdd(priority_queue <Struct> &pq, double currNum) {
+            if(pq.size() < k) {
+                pq.insert(currNum);
+            } else if(pq.getMax() > currNum) {
+                pq.pop();
+                pq.add(currNum);
+            }
+        }
+
+        double dfsUtility(Node *node, priority_queue <Struct> &pq, k) {
+            if(node->type != "leaf") {
+                abl = getMetrics(node->children);
+                sort(abl, MINMAXDIST);
+                
+                Node *newList = empty;
+                
+                for(int i = 0; i < abl.length; i++) {
+                    if(abl[i].MIN_DIST <= abl[0].MINMAX_DIST) {
+                        newList.push(abl[i]);
                     }
                 }
-            }else{
                 
+                double totalMin = INF;
+                priority_queue <Struct> ans;
+                
+                for(int i = 0; i < newList.size(); i++) {
+                    priority_queue <Struct> &currPq = dfs(newList[i], pq);
+                    ans = combine(ans, currPq);
+                    int maxFromAll = combined.getMax();
+                    
+                    for(int j = i + 1; j < newLIst.size(); j++) {
+                        if(abl[j].MIN_DIST > maxFromAll) {
+                            abl.remove(j);
+                        }
+                    }
+                }
+            
+                return ans;
             }
         }
 
         
-        vector<Record> knnQuery(Rectangle point, int K){
-            vector<Record> answer;
-            knnQueryUtility(rootId, point,  K, answer);
-            return answer;
+        vector<pair<double, Rectangle>> knnQuery(Rectangle point, int K){
+            return knnQueryUtility(rootId, point.a,  K);
         }
 
 
@@ -639,14 +735,7 @@ class Rtree{
         }
 
 
-        double euclideanDistancePoints(Point a, Point b){
-            double distance = 0
-            for(int i=0;i<a.dim.size();i++){
-                distance += math.pow(a.dim[i] - b.dim[i], 2);
-            }
-            return distance;
-        }
-
+        
         double MinDistance(Rectangle rec, Point point){
             double totalDistance = 0;
             for(int i=0;i<point.dim.size();i++){
