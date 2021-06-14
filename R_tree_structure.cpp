@@ -1,10 +1,16 @@
+#include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <vector>
 #include <stack>
 #include <fstream>
 #include <utility>
 #include <limits>
-#include "Entity.cpp"
+#include <istream>
+#include <cstdlib>
+#include <stdlib.h>
+
+#include "Record.cpp"
 
 
 
@@ -43,36 +49,36 @@ vector<string> simple_tokenizer(string s)
     return splitString;
 }
 
-struct Index{
-    int numOfBlock;
-    int numOfLine;
-    Entity getData() {
-        ofstream inFile;
-        inFile.open ("indexfile.txt");
-        string line;
-        vector<string> sLine;
-        bool found = false;
-        while (getline(inFile, line) && !found){
-            sLine = simple_tokenizer(line);
-            if(atoi(sLine[1]) == numOfBlock){
-                found = true;
-                int i=0;
-                while(i!=numOfLine){
-                    getline(inFile, line);
-                    i++; 
-                }
-                sLine = simple_tokenizer(line);
-                vector<sring> coords;
-                for(int i=1;i<sLine.size();i++){
-                    coords.push_back(sLine[i]);
-                }
-                Entity en(line[0], coords);
-
-            }
-        }
-        return en;
-    }
-}
+//struct Index{
+//    Record getData() {
+//        int numOfBlock;
+//        int numOfLine;
+//
+//        fstream inFile;
+//        inFile.open ("indexfile.txt");
+//        string line;
+//        vector<string> sLine;
+//        bool found = false;
+//        while (getline(inFile, line) && !found){
+//            sLine = simple_tokenizer(line);
+//            if(stoi(sLine[1]) == numOfBlock){
+//                found = true;
+//                int i=0;
+//                while(i!=numOfLine){
+//                    getline(inFile, line);
+//                    i++;
+//                }
+//                sLine = simple_tokenizer(line);
+//                vector<double> coords;
+//                for(int i=1;i<sLine.size();i++){
+//                    coords.push_back(stod(sLine[i]));
+//                }
+//                Record en(line[0], coords);
+//            }
+//        }
+//        return en;
+//    }
+//}
 
 /**
 ** Class for the Rectangles represantation
