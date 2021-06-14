@@ -1,11 +1,17 @@
 #include <algorithm>
 #include <vector>
+#include <sstream>
 #include <stack>
 #include <fstream>
 #include <utility>
 #include <limits>
-#include "Entity.cpp"
 
+
+
+
+
+#include "Record.cpp"
+#include "Node.cpp"
 
 
 #define M 50
@@ -25,6 +31,7 @@ struct Point{
     double x;
     double y;
 };
+
 
 struct ABLinformation{
     double minDist;
@@ -46,15 +53,15 @@ vector<string> simple_tokenizer(string s)
 struct Index{
     int numOfBlock;
     int numOfLine;
-    Entity getData() {
-        ofstream inFile;
+    Record getData() {
+        fstream inFile;
         inFile.open ("indexfile.txt");
         string line;
         vector<string> sLine;
         bool found = false;
         while (getline(inFile, line) && !found){
             sLine = simple_tokenizer(line);
-            if(atoi(sLine[1]) == numOfBlock){
+            if(stoi(sLine[1]) == numOfBlock){
                 found = true;
                 int i=0;
                 while(i!=numOfLine){
@@ -62,39 +69,22 @@ struct Index{
                     i++; 
                 }
                 sLine = simple_tokenizer(line);
-                vector<sring> coords;
+                vector<double> coords;
                 for(int i=1;i<sLine.size();i++){
-                    coords.push_back(sLine[i]);
+                    coords.push_back(stod(sLine[i]));
                 }
-                Entity en(line[0], coords);
-
+                Record en(line[0], coords);
+                return en;
             }
         }
-        return en;
+        
     }
-}
+};
 
 /**
 ** Class for the Rectangles represantation
 **/
-class Rectangle{
-    public:
-        Point a;
-        Point b;
-        Node *childNode;
-        Rectangle();
-        Rectangle(Point x, Point y){
-            a = x;
-            b = y;
-        }
-        double getMargin(){
-            return 2*(b.x - a.x) + 2*(b.y - a.y);
-        }
-        double getArea(){
-            return (b.x - a.x)*(b.y - a.y);
-        }  
-};
-
+/**
 class Node{
     int capacity;
     int parentId;
@@ -125,30 +115,27 @@ class Node{
     }
 
 };
-/**
-class Node: BaseNode{
-
-    Node(Point a, Point b) {
-        Rectangle boundingBox(a, b);
-        rectangles = vector <int>(M);
-    }
-
-    vector<int> rectangles;
-    Rectangle boundingBox;
-};
-
-
-
-class NodeLeaf: BaseNode{
-    NodeLeaf(Point a, Point b) {
-        entities = vector <int>(M);
-        Rectangle boundingBox(a, b);
-    }
-
-    vector <int> entities;
-    Rectangle boundingBox;
-};
 **/
+
+class Rectangle{
+    public:
+        Point a;
+        Point b;
+        Rectangle();
+        Rectangle(Point x, Point y){
+            a = x;
+            b = y;
+        }
+        double getMargin(){
+            return 2*(b.x - a.x) + 2*(b.y - a.y);
+        }
+        double getArea(){
+            return (b.x - a.x)*(b.y - a.y);
+        }  
+};
+
+
+
 
 class IndexfileUtilities {
 public:
