@@ -1,11 +1,12 @@
-#ifndef NODE_CPP
-#define NODE_CPP
-
-
-#include "Rectangle.cpp"
-#include "IndexfileUtilities.cpp"
+#include <vector>
+#include <utility>
+#include <fstream>
 using namespace std;
 
+#include "Rectangle.cpp"
+
+#ifndef NODE_CPP
+#define NODE_CPP
 
 class Node{
     public:
@@ -22,19 +23,26 @@ class Node{
             boundingBox = bounding;
         }
 
-        void addChild(int blockID){
-            rectangles[capacity] = blockID;
+        void updateBounds(Rectangle aBoundingBox) {
+            boundingBox = aBoundingBox;
+        }
+
+        void addChild(int blockID, Rectangle rec){
+            rectangles[capacity] = { blockID, rec };
             capacity++;
         }
 
         void modifiedNode(){
-            IndexfileUtilities util();
-            util.modifiedBlockId(*this, blockId);
+            fstream myfile;
+            myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
+
+            int blockStart = (blockId - 1) * sizeof(Node);
+            myfile.seekp(blockStart, ios::beg);
+            myfile.write((char *) this, sizeof(Node));
         }
         void updateBoundingBox(Rectangle rec){
-            boundingBox = rec;
-            IndexfileUtilities util();
-            updateBounds(this, boundingBox);
+            updateBounds(boundingBox);
+            modifiedNode();
         }
 
 };

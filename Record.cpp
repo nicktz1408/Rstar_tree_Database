@@ -2,8 +2,13 @@
 
 using namespace std;
 
+#ifndef RECORD_CPP
+#define RECORD_CPP
+
 class Record{
 public:
+    Record();
+
     Record(long long aId, vector <double> aCoords) {
         id = aId;
         coords = aCoords;
@@ -23,3 +28,4 @@ private:
     long long id;
     vector <double> coords;
 };
+#endif

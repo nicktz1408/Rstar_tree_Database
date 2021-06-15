@@ -6,10 +6,7 @@
 #include <utility>
 #include <limits>
 #include <cfloat>
-
-
-
-
+using namespace std;
 
 #include "Record.cpp"
 #include "Node.cpp"
@@ -19,26 +16,13 @@
 #define m 25
 #define dimension 2
 
-using namespace std;
-
-
-
 int rootId = 1;
-
-/**
-** Struct for Points represantation
-
-struct Point{
-    double x;
-    double y;
-};
-**/
-
 
 struct ABLinformation{
     double minDist;
     double minMaxDist;
     int index;
+    int entityNumber;
 };
 
 vector<string> simple_tokenizer(string s)
@@ -52,182 +36,12 @@ vector<string> simple_tokenizer(string s)
     return splitString;
 }
 
-struct Index{
-    int numOfBlock;
-    int numOfLine;
-    Record getData() {
-        fstream inFile;
-        inFile.open ("indexfile.txt");
-        string line;
-        vector<string> sLine;
-        bool found = false;
-        while (getline(inFile, line) && !found){
-            sLine = simple_tokenizer(line);
-            if(stoi(sLine[1]) == numOfBlock){
-                found = true;
-                int i=0;
-                while(i!=numOfLine){
-                    getline(inFile, line);
-                    i++; 
-                }
-                sLine = simple_tokenizer(line);
-                vector<double> coords;
-                for(int i=1;i<sLine.size();i++){
-                    coords.push_back(stod(sLine[i]));
-                }
-                Record en(line[0], coords);
-                return en;
-            }
-        }
-        
-    }
-};
-
-/**
-** Class for the Rectangles represantation
-**/
-/**
-class Node{
-    int capacity;
-    int parentId;
-    int blockId;
-    bool isLeaf;
-    vector<pair<int, Rectangle>> rectangles;
-    Rectangle boundingBox;
-    Node();
-    Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangles>> rec){
-        isLeaf = isLeafNode;
-        rectangles = rec;
-        boundingBox = bounding;
-    }
-
-    void addChild(int blockID){
-        rectangles[capacity] = blockIDl;
-        capacity++;
-    }
-
-    void modifiedNode(){
-        IndexfileUtilities util();
-        util.modifiedBlockId(*this, blockId);
-    }
-    void updateBoundingBox(Rectangle rec){
-        boundingBox = rec;
-        IndexfileUtilities util();
-        updateBounds(this, boundingBox);
-    }
-
-};
-**/
-/**
-class Rectangle{
-    public:
-        Point a;
-        Point b;
-        Rectangle();
-        Rectangle(Point x, Point y){
-            a = x;
-            b = y;
-        }
-        double getMargin(){
-            return 2*(b.x - a.x) + 2*(b.y - a.y);
-        }
-        double getArea(){
-            return (b.x - a.x)*(b.y - a.y);
-        }  
-};
-**/
-
-
-
-/**
-class IndexfileUtilities {
-public:
-    int nextId = 1;
-    IndexfileUtilities();
-
-    int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<pair<int, Rectangles>> rec){
-        fstream myfile;
-        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary | ios::end);
-        Node newNode(boundingBox, isLeafNode, rec);
-        myfile.write((char *) &newNode, sizeof(Node));
-        return nextId++;
-    }
-
-    void modifiedBlockId(Node aNode, int id){
-        fstream myfile;
-        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
-        int blockStart = (id - 1) * sizeof(Node);
-        myFile.seekp(blockStart, ios::beg);
-        myfile.write((char *) &newNode, sizeof(Node));
-    }
-
-    Node getNodeByBlockId(int id) {
-        return getNodeByBlockIdHelper(id);
-    }
-
-    Record getRecordFromDatafile(int entityNumber){
-        Record output;
-
-        int blockNum = entityNumber >> 27;
-        int recordNum = (entityNumber << 5) >> 5;
-        ifstream myFile;
-        myFile.open("datafile.dat",ios::in | ios::binary );
-
-        int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
-        myFile.seekg(index, myFile.beg);
-        myFile.read(output, sizeof(Record));
-
-        myFile.close();
-        return output;
-    }
-
-
-    void updateBounds(Node *node, Rectangle newBoundingBox){
-        node->boundingBox = newBoundingBox;
-        int ndId = node->blockId;
-        int prnId = node->parentId;
-
-        if(prnId != NULL){
-            Node parentNode = this->getNodeByBlockId(prnId);
-            for(int i=0;i<parentNode.capacity;i++){
-                if(parentNode.rectangles[i].first == ndId){
-                    parentNode.rectangles[i].second = newBoundingBox;
-                    modifiedBlockId(parentNode, prnId);
-
-                }
-            }
-
-        }
-    }
-
-private:
-    Node getNodeByBlockIdHelper(int id) {
-        fstream myfile;
-        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
-        int blockStart = (id - 1) * sizeof(Node);
-        myFile.seekg(blockStart, ios::beg);
-        
-        Node node();
-
-        myFile.read ((char*) &node, sizeof (Node));
-        myFile.close();
-        return node;
-    }
-};
-**/
-
-
-
-
 class Rtree{
     public:
 
         IndexfileUtilities *util;
         Rtree(string filename){
             util = new IndexfileUtilities();
-
-
-
 
             Node *root = NULL;
             fstream readFile;
@@ -236,7 +50,7 @@ class Rtree{
             int currSizeInFile = 0;
             bool blockEnds = true;
 
-            while(currSizeInBlock <= 32768) {
+            while(currSizeInFile <= 32768) {
                 if(blockEnds) {
                     currSizeInFile += 2;
                     blockEnds = false;
@@ -245,13 +59,14 @@ class Rtree{
                 readFile.seekg(currSizeInFile);
 
                 Record rec;
-                readFile.read(&rec, sizeof(Record));
+                readFile.read((char *)&rec, sizeof(Record));
 
-                double lan = rec.getLan();
-                double lng = rec.getLong();
+                double lan = rec.getCoords()[0];
+                double lng = rec.getCoords()[1];
+
                 Point p(lan, lng);
                 int blockId = (currSizeInFile - 1) / 32770 + 1;
-                int line = (currSizeInFile % 32770 - 2) / sizeof(Record) + 1;
+                int line = (currSizeInFile % 32770 - 2) / (int)sizeof(Record) + 1;
                 int entityNumber = getEntityNumber(blockId, line);
 
                 insert(p, entityNumber);
@@ -259,13 +74,9 @@ class Rtree{
 
                 currSizeInFile += sizeof(Record);
 
-                if(currSizeInBlock % 32770 == 0) {
+                if(currSizeInFile % 32770 == 0) {
                     blockEnds = true;
                 }
-            }
-
-            for(Record rec : data) {
-                insert(rec);
             }
         }
 
@@ -277,14 +88,20 @@ class Rtree{
             return entityNumber;
         }
 
+        void extractDatafileInfoFromEntityNumber(unsigned int entityNumber, unsigned int &blockId, unsigned int &line) {
+            blockId = entityNumber >> 27;
+            line = entityNumber & ((1 << 28) - 1);
+        }
+
 
         void insert(Point p, int entNum){
-            Node *root = util.getNodeByBlockId(rootId);
-            vector <Node *> leafNodes(0);
-            Node *leaf = getLeafNode(root, p, leafNodes);
+            Node root = util->getNodeByBlockId(rootId);
+
+            vector <Node> leafNodes(0);
+            getLeafNode(root, p, leafNodes);
             
 
-            for(Node *node : leafNodes) {
+            for(Node node : leafNodes) {
                 splitNode(node);
             }
         }
@@ -327,7 +144,7 @@ class Rtree{
 
 
     
-        Node* findChildHeuristic(Node node, Point p){
+        Node findChildHeuristic(Node node, Point p){
             Node childNode = util->getNodeByBlockId(node.rectangles[0].first);
             int minIndexRec = 0;
             if(childNode.isLeaf){
@@ -335,7 +152,7 @@ class Rtree{
                 double minOverlap = DBL_MAX;
                 for(int i=0;i<node.capacity;i++){
                     double sum = 0;
-                    Rectangle extendedRec = calculateNewBound(p, allRec[i]);
+                    Rectangle extendedRec = calculateNewBound(p, allRec[i].second);
                     for(int j=0;j<node.capacity;j++){
                         if(i!=j){
                             sum +=  calculateOverlap(extendedRec, allRec[j].second);
@@ -350,12 +167,13 @@ class Rtree{
 
             }else{
                 vector<pair<int, Rectangle>> allRec = node.rectangles;
-                double minOverlap = calculateOverlap(allRec);
+                double minOverlap = DBL_MAX;
+
                 for(int i=0;i<node.capacity;i++){
                     double sum = 0;
-                    Rectangle extendedRec = calculateNewBound(p, allRec[i]);
+                    Rectangle extendedRec = calculateNewBound(p, allRec[i].second);
                 
-                    if(calculateOverlap(extendedRec, allRec[i]) < minOverlap){
+                    if(calculateOverlap(extendedRec, allRec[i].second) < minOverlap){
                         minOverlap = sum;
                         minIndexRec = i;
                     }
@@ -363,7 +181,7 @@ class Rtree{
                 }
             }
             
-            Node *nextNode = util.getNodeByBlockId(node.rectangles[minIndexRec].first);
+            Node nextNode = util->getNodeByBlockId(node.rectangles[minIndexRec].first);
             return nextNode;
         }
 
@@ -372,55 +190,56 @@ class Rtree{
 
 
 
-        void getLeafNode(Node *node, Point p, vector <Node *> &leafNodes){
-            if(node->isLeaf){
+        void getLeafNode(Node node, Point p, vector <Node> &leafNodes){
+            if(node.isLeaf){
                 leafNodes.push_back(node);
             }
 
-            bool contains = false;
+            bool containsObj = false;
             
-            for(int i=0;i<node->capacity;i++){
-                if(contains(p, node->rectangles[i].second)){
-                    contains = true;
-                    int childId = node->rectangles[i].first;
+            for(int i=0;i<node.capacity;i++){
+                if(contains(p, node.rectangles[i].second)){
+                    containsObj = true;
+                    int childId = node.rectangles[i].first;
                     Node currentNode = util->getNodeByBlockId(childId);
 
                     getLeafNode(currentNode, p, leafNodes);
                 }
             }
 
-            if(!contains) {
-                Node *chosenChild = findChildHeuristic(node, p);
+            if(!containsObj) {
+                Node chosenChild = findChildHeuristic(node, p);
                 getLeafNode(chosenChild, p, leafNodes);
             }
         }
 
 
-          void splitNode(Node *aNode){
-            if(aNode->capacity == M+1) {
+          void splitNode(Node &aNode){
+            if(aNode.capacity == M+1) {
                 pair<vector<pair<int, Rectangle>>, vector<pair<int ,Rectangle>>> a = splitHeuristic(aNode);
                 vector<pair<int, Rectangle>> fir = a.first;
                 vector<pair<int, Rectangle>> sec = a.second;
 
 
-                aNode->rectangles = fir;
-                aNode->modifiedNode();
+                aNode.rectangles = fir;
+                aNode.modifiedNode();
 
+                Rectangle otherBoundingBox = constructBig(sec);
                 
-                int otherNodeId = util->newBlockID(constructBig(sec),aNode->isLeaf, sec);
-                Node *otherNode = util->getNodeByBlockId(otherNodeId);
+                int otherNodeId = util->newBlockID(otherBoundingBox,aNode.isLeaf, sec);
+                Node otherNode = util->getNodeByBlockId(otherNodeId);
 
-                int parentId = aNode->parentId;
+                int parentId = aNode.parentId;
                 if(parentId == -1){
-                    rootId = util->newBlockID(constructBig(sec),aNode->isLeaf, sec);
-                    Node *rootNode = util->getNodeByBlockId(rootId);
-                    rootNode->addChild(aNode->blockId);
-                    rootNode->addChild(otherNodeId);
-                    rootNode->modifiedNode();
+                    rootId = util->newBlockID(constructBig(sec),aNode.isLeaf, sec);
+                    Node rootNode = util->getNodeByBlockId(rootId);
+                    rootNode.addChild(aNode.blockId, aNode.boundingBox);
+                    rootNode.addChild(otherNodeId, otherBoundingBox);
+                    rootNode.modifiedNode();
                 }else{
-                    Node *parentNode = util->getNodeByBlockId(parentId);
-                    parentNode->addChild(otherNodeId);
-                    parentNode->modifiedNode();
+                    Node parentNode = util->getNodeByBlockId(parentId);
+                    parentNode.addChild(otherNodeId, otherBoundingBox);
+                    parentNode.modifiedNode();
                     splitNode(parentNode);
                 }
             } 
@@ -455,8 +274,8 @@ class Rtree{
         }
 
 
-        pair<vector<pair< int, Rectangle>>, vector<pair<int ,Reactangle>>> ChooseSplitIndex(vector<pair<int, Rectangle>> recs, int axis){
-            sort(recs.begin(), recs.end(), [](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
+        pair<vector<pair< int, Rectangle>>, vector<pair<int ,Rectangle>>> ChooseSplitIndex(vector<pair<int, Rectangle>> recs, int axis){
+            sort(recs.begin(), recs.end(), [axis](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
                 {
                     if(axis==0){
                         if(lhs.second.a.x == rhs.second.a.x){
@@ -503,7 +322,7 @@ class Rtree{
             int minAxis;
             double minCost = DBL_MAX;
             for(int axis = 0;axis < dimension; axis++){
-                sort(recs.begin(), recs.end(), [](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
+                sort(recs.begin(), recs.end(), [axis](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
                 {
                     if(axis==0){
                         if(lhs.second.a.x == rhs.second.a.x){
@@ -519,7 +338,7 @@ class Rtree{
                     }
                 });
                 
-                double totalCost = 0;
+                double currTotalCost = 0;
                 int k = 1;
                 while(m-1+k < M){
                     vector<pair<int, Rectangle>> group1, group2;
@@ -530,40 +349,35 @@ class Rtree{
                     for(;i<recs.size();i++){
                         group2.push_back(recs[i]);
                     }
-                    totalCost += marginHeuristic(group1, group2);
+                    currTotalCost += marginHeuristic(group1, group2);
                     
                 }
                 
-                if(currCost < minCost){
-                    minCost = currCost;
+                if(currTotalCost < minCost){
+                    minCost = currTotalCost;
                     minAxis = axis;
                 }
             }
             return minAxis;
         }
-        
 
-
-
-        pair<vector<pair<int, Rectangle>>, vector<pair<int, Rectangle>>> splitHeuristic(Node *node) {
-            int axis = ChooseSplitAxis(node->rectangles);
-            return ChooseSplitIndex(node->rectangles, axis);
-
+        pair<vector<pair<int, Rectangle>>, vector<pair<int, Rectangle>>> splitHeuristic(Node &node) {
+            int axis = ChooseSplitAxis(node.rectangles);
+            return ChooseSplitIndex(node.rectangles, axis);
         }
 
 
 
         void rangeQueryUtility(int blockId, Rectangle range, vector <Record> &data){
-            IndexfileUtilities util();
-            Node *node = util.getNodeByBlockId(blockId);
+            IndexfileUtilities util;
+            Node node = util.getNodeByBlockId(blockId);
 
-            if(node->isLeaf){
-                vector<pair<int, Rectangle>> indexData = node->rectangles;
+            if(node.isLeaf){
+                vector<pair<int, Rectangle>> indexData = node.rectangles;
 
                 for(pair<int, Rectangle> entity : indexData) {
                     Record record = util.getRecordFromDatafile(entity.first);
-                    
-                    Point currPoint = new Point(record.getCoords()[0], record.getCoords[1]);
+                    Point currPoint(record.getCoords()[0], record.getCoords()[1]);
 
                     if(contains(currPoint, range)) {
                         data.push_back(record);
@@ -571,17 +385,14 @@ class Rtree{
                 }
             }
 
-            for(int i=0;i<node->capacity;i++){
-                pair<int, Rectangle> currChildBlock = node->rectangles[i];
+            for(int i=0;i<node.capacity;i++){
+                pair<int, Rectangle> currChildBlock = node.rectangles[i];
 
                 if(overlap(range, currChildBlock.second)){
                     rangeQueryUtility(currChildBlock.first, range, data);
                 }
             }
         }
-
-
-
         
         vector<Record> rangeQuery(Rectangle range){
             vector<Record> answer;
@@ -595,7 +406,7 @@ class Rtree{
                 merged.push_back(a[i]);
                 merged.push_back(b[i]);
             }
-            sort(merged.begin(), merged.end()[](struct ABLinformation &lhs, struct ABLinformation &rhs)
+            sort(merged.begin(), merged.end(), [](struct ABLinformation &lhs, struct ABLinformation &rhs)
             {
                  return lhs.minMaxDist < rhs.minMaxDist;
             });
@@ -604,70 +415,84 @@ class Rtree{
         }
 
 
-        vector<ABLinformation> knnQueryUtility(int blockId, Point point, int K){
-            IndexfileUtilities util();
-            Node *node = util.getNodeByBlockId(blockId);
+        vector<struct ABLinformation> knnQueryUtility(int blockId, Point point, int K){
+            Node node = util->getNodeByBlockId(blockId);
 
-
-            if(node->isLeaf){
+            if(node.isLeaf){
                 double nearestDist = DBL_MAX;
-                vector<pair<double, Rectangle>> output;
+                vector<struct ABLinformation> output;
 
-                for(int i=0;i<node->capacity;i++){
-                    double dist = MinMaxDistance(node->rectangles[i].second, point);
+                for(int i=0;i<node.capacity;i++){
+                    double minDist = MinDistance(node.rectangles[i].second, point);
+                    double minMaxDist = MinMaxDistance(node.rectangles[i].second, point);
                     
-                    output.push_back({ dist, node->rectangles[i].second });
+                    output.push_back({ minDist, minMaxDist, i, node.rectangles[i].first });
                 }
+
                 sort(output.begin(), output.end());
                 output.resize(K);
+
                 return output;
             }else{
                 vector<struct ABLinformation> ablInfo = getABLinformation(node, point);
                 vector<struct ABLinformation> ablFiltered;
                 double cutoff = ablInfo[0].minMaxDist;
-                copy_if (ablInfo.begin(), ablInfo.end(), back_inserter(ablFiltered), [](struct ABLinformation abl){return abl.minDistance <= cutoff;} );
+                copy_if (ablInfo.begin(), ablInfo.end(), back_inserter(ablFiltered),
+                         [cutoff](struct ABLinformation abl){return abl.minDist <= cutoff;} );
 
                 vector<struct ABLinformation> answer;
                 for(int i=0;i<ablFiltered.size();i++){
-                    vector<struct ABLinformation> currPq = dfs(ablFiltered[i], node->rectangles[ablFiltered[i].index].first);
+                    int childIndex = ablFiltered[i].index;
+                    int childId = node.rectangles[childIndex].first;
+
+                    vector<struct ABLinformation> currPq = knnQueryUtility(childId, point, K);
+
                     answer = combine(answer, currPq);
-                    int maxFromAll = answer[K-1].getMin;
+                    int maxFromAll = answer[K-1].minDist;
+
                     vector<struct ABLinformation> tempAnswer;
-                    copy_if (answer.begin(), answer.end(), back_inserter(tempAnswer), [](struct ABLinformation abl){return abl.minDistance <= maxFromAll;} );
+                    copy_if (answer.begin(), answer.end(), back_inserter(tempAnswer),
+                             [maxFromAll](struct ABLinformation abl){return abl.minDist <= maxFromAll;} );
                     answer = tempAnswer;
-                    
                 }
+
                 return answer;
-
             }
-
-            
         }
 
-        vector<struct ABLinformation> getABLinformation(Node *node, Point point){
+        vector<struct ABLinformation> getABLinformation(Node &node, Point point){
             vector<struct ABLinformation> output;
-            for(int i=0;i<node->capacity;i++){
-                struct abl{MinDistance(node->rectangles[i], point), MinMaxDistance(node->rectangles[i], point), i};
-                /**
-                abl.minDist = MinDistance(node->rectangles[i], point);
-                abl.minMaxDist = MinMaxDistance(node->rectangles[i], point);
-                abl.index = i;
-                **/
+            for(int i=0;i<node.capacity;i++){
+                struct ABLinformation abl{
+                    MinDistance(node.rectangles[i].second, point),
+                    MinMaxDistance(node.rectangles[i].second, point),
+                    i};
+
                 output.push_back(abl);
             }
+
             sort(output.begin(), output.end(),[](struct ABLinformation &lhs, struct ABLinformation &rhs)
             {
                  return lhs.minMaxDist < rhs.minMaxDist;
             });
-            return ouput;
+
+            return output;
         }
 
     
 
 
         
-        vector<pair<double, Rectangle>> knnQuery(Rectangle point, int K){
-            return knnQueryUtility(rootId, point.a,  K);
+        vector<Record> knnQuery(Rectangle point, int K){
+            // vector <datafileData>
+            vector <struct ABLinformation> ans = knnQueryUtility(rootId, point.a,  K);
+
+            for(auto currAns : ans) {
+                int entityNumber = currAns.entityNumber;
+
+                unsigned int blockId, line;
+                extractDatafileInfoFromEntityNumber(entityNumber, blockId, line);
+            }
         }
 
         //In this function we check if two rectangles overlapping
@@ -685,11 +510,6 @@ class Rtree{
 
 
     private:
-        Node *root;
-        
-
-
-        
         double MinDistance(Rectangle rec, Point point){
             double totalDistance = 0;
             for(int i=0;i<point.dim.size();i++){

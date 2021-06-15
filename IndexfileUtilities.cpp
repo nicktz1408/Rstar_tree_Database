@@ -1,5 +1,15 @@
-#include "Node.cpp"
+class Node;
 
+#include <fstream>
+#include <utility>
+using namespace std;
+
+#include "Rectangle.cpp"
+#include "Node.cpp"
+#include "Record.cpp"
+
+#ifndef INDEXFILEUTILITIES_CPP
+#define INDEXFILEUTILITIES_CPP
 
 class IndexfileUtilities {
 public:
@@ -19,7 +29,7 @@ public:
         myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
         int blockStart = (id - 1) * sizeof(Node);
         myfile.seekp(blockStart, ios::beg);
-        myfile.write((char *) &newNode, sizeof(Node));
+        myfile.write((char *) &aNode, sizeof(Node));
     }
 
     Node getNodeByBlockId(int id) {
@@ -36,7 +46,7 @@ public:
 
         int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
         myFile.seekg(index, myFile.beg);
-        myFile.read(output, sizeof(Record));
+        myFile.read((char *)&output, sizeof(Record));
 
         myFile.close();
         return output;
@@ -48,7 +58,7 @@ public:
         int ndId = node->blockId;
         int prnId = node->parentId;
 
-        if(prnId != NULL){
+        if(prnId != 0){
             Node parentNode = this->getNodeByBlockId(prnId);
             for(int i=0;i<parentNode.capacity;i++){
                 if(parentNode.rectangles[i].first == ndId){
@@ -63,15 +73,17 @@ public:
 
 private:
     Node getNodeByBlockIdHelper(int id) {
-        fstream myfile;
-        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
+        fstream myFile;
+        myFile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
         int blockStart = (id - 1) * sizeof(Node);
         myFile.seekg(blockStart, ios::beg);
         
-        Node node();
+        Node node;
 
         myFile.read ((char*) &node, sizeof (Node));
         myFile.close();
         return node;
     }
 };
+
+#endif

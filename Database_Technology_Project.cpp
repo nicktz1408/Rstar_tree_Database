@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include "rapidxml-1.13/rapidxml.hpp"
-#include "Entity.cpp"
+#include "Record.cpp"
 #include <string>
 
 #define blockSize 32768
