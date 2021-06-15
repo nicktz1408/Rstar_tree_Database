@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/nicktzavidas/Desktop/dev/Rstar_tree_Database/R_tree_structure.cpp
+iostream
+-
+sstream
+-
+algorithm
+-
+vector
+-
+stack
+-
+fstream
+-
+utility
+-
+limits
+-
+istream
+-
+cstdlib
+-
+stdlib.h
+-
+Record.cpp
+/Users/nicktzavidas/Desktop/dev/Rstar_tree_Database/Record.cpp
+
+/Users/nicktzavidas/Desktop/dev/Rstar_tree_Database/Record.cpp
+vector
+-
+

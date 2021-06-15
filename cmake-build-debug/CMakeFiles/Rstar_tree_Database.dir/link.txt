@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++  -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/Rstar_tree_Database.dir/Database_Technology_Project.cpp.o CMakeFiles/Rstar_tree_Database.dir/R_tree_structure.cpp.o  -o Rstar_tree_Database 

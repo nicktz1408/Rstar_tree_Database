@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #include "Record.cpp"
-
+#include "Point.cpp"
 
 
 #define M 50
@@ -24,13 +24,7 @@ using namespace std;
 
 int rootId = 1;
 
-/**
-** Struct for Points represantation
-**/
-struct Point{
-    double x;
-    double y;
-};
+
 
 struct ABLinformation{
     double minDist;
@@ -87,7 +81,7 @@ class Rectangle{
     public:
         Point a;
         Point b;
-        Node *childNode;
+
         Rectangle();
         Rectangle(Point x, Point y){
             a = x;
