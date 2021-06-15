@@ -5,6 +5,7 @@
 #include <fstream>
 #include <utility>
 #include <limits>
+#include <cfloat>
 
 
 
@@ -12,7 +13,7 @@
 
 #include "Record.cpp"
 #include "Node.cpp"
-
+#include "IndexfileUtilities.cpp"
 
 #define M 50
 #define m 25
@@ -26,11 +27,12 @@ int rootId = 1;
 
 /**
 ** Struct for Points represantation
-**/
+
 struct Point{
     double x;
     double y;
 };
+**/
 
 
 struct ABLinformation{
@@ -116,7 +118,7 @@ class Node{
 
 };
 **/
-
+/**
 class Rectangle{
     public:
         Point a;
@@ -133,10 +135,11 @@ class Rectangle{
             return (b.x - a.x)*(b.y - a.y);
         }  
 };
+**/
 
 
 
-
+/**
 class IndexfileUtilities {
 public:
     int nextId = 1;
@@ -211,6 +214,7 @@ private:
         return node;
     }
 };
+**/
 
 
 
@@ -277,7 +281,7 @@ class Rtree{
         void insert(Point p, int entNum){
             Node *root = util.getNodeByBlockId(rootId);
             vector <Node *> leafNodes(0);
-            NodeLeaf *leaf = getLeafNode(root, p, leafNodes);
+            Node *leaf = getLeafNode(root, p, leafNodes);
             
 
             for(Node *node : leafNodes) {
@@ -314,7 +318,7 @@ class Rtree{
             secondPoint.x = min(a.b.x, b.b.x);
             secondPoint.y = min(a.b.y, b.b.y);
             
-            overlap = max(secondPoint.x - firstPoint.x, 0) * max(secondPoint.y - firstPoint.y, 0);
+            overlap = max(secondPoint.x - firstPoint.x, 0.0) * max(secondPoint.y - firstPoint.y, 0.0);
 
 
             return overlap;
@@ -334,7 +338,7 @@ class Rtree{
                     Rectangle extendedRec = calculateNewBound(p, allRec[i]);
                     for(int j=0;j<node.capacity;j++){
                         if(i!=j){
-                            sum +=  calculateOverlap(extendedRec, allRec[j]);
+                            sum +=  calculateOverlap(extendedRec, allRec[j].second);
                         }
                     }
                     if(sum < minOverlap){
@@ -346,7 +350,7 @@ class Rtree{
 
             }else{
                 vector<pair<int, Rectangle>> allRec = node.rectangles;
-                double minOverlap = calculateOverlap(all);
+                double minOverlap = calculateOverlap(allRec);
                 for(int i=0;i<node.capacity;i++){
                     double sum = 0;
                     Rectangle extendedRec = calculateNewBound(p, allRec[i]);
@@ -379,7 +383,7 @@ class Rtree{
                 if(contains(p, node->rectangles[i].second)){
                     contains = true;
                     int childId = node->rectangles[i].first;
-                    currentNode = util->getNodeByBlockId(childId);
+                    Node currentNode = util->getNodeByBlockId(childId);
 
                     getLeafNode(currentNode, p, leafNodes);
                 }
@@ -387,14 +391,14 @@ class Rtree{
 
             if(!contains) {
                 Node *chosenChild = findChildHeuristic(node, p);
-                getLeafNode(chosenChild);
+                getLeafNode(chosenChild, p, leafNodes);
             }
         }
 
 
           void splitNode(Node *aNode){
             if(aNode->capacity == M+1) {
-                pair<vector<pair<int, Rectangle>>, vector<pair<int ,Reactangle>>> a = splitHeuristic(aNode);
+                pair<vector<pair<int, Rectangle>>, vector<pair<int ,Rectangle>>> a = splitHeuristic(aNode);
                 vector<pair<int, Rectangle>> fir = a.first;
                 vector<pair<int, Rectangle>> sec = a.second;
 
@@ -432,7 +436,7 @@ class Rtree{
             return out;
         }
 
-        double marginHeuristic(vector <Rectangle> g1, vector<Rectangle> g2){
+        double marginHeuristic(vector <pair<int, Rectangle>> g1, vector<pair<int, Rectangle>> g2){
             double margin1, margin2;
 
             margin1 = constructBig(g1).getMargin();
@@ -487,9 +491,7 @@ class Rtree{
                         minGroup2 = group2;
                     }
                 }
-                
-            }
-            pair<vector<pair<int,Rectangle>>, vector<pair<int,Reactangle>>> out;
+            pair<vector<pair<int,Rectangle>>, vector<pair<int,Rectangle>>> out;
             out.first = minGroup1;
             out.second = minGroup2;
             return out;
@@ -520,7 +522,7 @@ class Rtree{
                 double totalCost = 0;
                 int k = 1;
                 while(m-1+k < M){
-                    vector<Rectangle> group1, group2;
+                    vector<pair<int, Rectangle>> group1, group2;
                     int i;
                     for(i=0;i<m-1+k;i++){
                         group1.push_back(recs[i]);
@@ -543,7 +545,7 @@ class Rtree{
 
 
 
-        pair<vector<pair<int, Rectangle>>, vector<pair<int, Reactangle>>> splitHeuristic(Node *node) {
+        pair<vector<pair<int, Rectangle>>, vector<pair<int, Rectangle>>> splitHeuristic(Node *node) {
             int axis = ChooseSplitAxis(node->rectangles);
             return ChooseSplitIndex(node->rectangles, axis);
 
@@ -602,7 +604,7 @@ class Rtree{
         }
 
 
-        vector<pair<double, Rectangle>> knnQueryUtility(int blockId, Rectangle point, int K){
+        vector<ABLinformation> knnQueryUtility(int blockId, Point point, int K){
             IndexfileUtilities util();
             Node *node = util.getNodeByBlockId(blockId);
 
@@ -645,10 +647,12 @@ class Rtree{
         vector<struct ABLinformation> getABLinformation(Node *node, Point point){
             vector<struct ABLinformation> output;
             for(int i=0;i<node->capacity;i++){
-                struct abl;
+                struct abl{MinDistance(node->rectangles[i], point), MinMaxDistance(node->rectangles[i], point), i};
+                /**
                 abl.minDist = MinDistance(node->rectangles[i], point);
                 abl.minMaxDist = MinMaxDistance(node->rectangles[i], point);
                 abl.index = i;
+                **/
                 output.push_back(abl);
             }
             sort(output.begin(), output.end(),[](struct ABLinformation &lhs, struct ABLinformation &rhs)
@@ -656,53 +660,25 @@ class Rtree{
                  return lhs.minMaxDist < rhs.minMaxDist;
             });
             return ouput;
-
         }
 
-        customAdd(priority_queue <Struct> &pq, double currNum) {
-            if(pq.size() < k) {
-                pq.insert(currNum);
-            } else if(pq.getMax() > currNum) {
-                pq.pop();
-                pq.add(currNum);
-            }
-        }
+    
 
-        double dfsUtility(Node *node, priority_queue <Struct> &pq, k) {
-            if(node->type != "leaf") {
-                abl = getMetrics(node->children);
-                sort(abl, MINMAXDIST);
-                
-                Node *newList = empty;
-                
-                for(int i = 0; i < abl.length; i++) {
-                    if(abl[i].MIN_DIST <= abl[0].MINMAX_DIST) {
-                        newList.push(abl[i]);
-                    }
-                }
-                
-                double totalMin = INF;
-                priority_queue <Struct> ans;
-                
-                for(int i = 0; i < newList.size(); i++) {
-                    priority_queue <Struct> &currPq = dfs(newList[i], pq);
-                    ans = combine(ans, currPq);
-                    int maxFromAll = combined.getMax();
-                    
-                    for(int j = i + 1; j < newLIst.size(); j++) {
-                        if(abl[j].MIN_DIST > maxFromAll) {
-                            abl.remove(j);
-                        }
-                    }
-                }
-            
-                return ans;
-            }
-        }
 
         
         vector<pair<double, Rectangle>> knnQuery(Rectangle point, int K){
             return knnQueryUtility(rootId, point.a,  K);
+        }
+
+        //In this function we check if two rectangles overlapping
+        bool overlap(Rectangle rec1, Rectangle rec2){
+            return (max(rec1.a.x, rec2.a.x) <= min(rec1.b.x, rec2.b.x) && max(rec1.a.y, rec2.a.y) <= min(rec1.b.y, rec2.b.y));
+        }
+
+
+        //In this function we check if a point contains in a rectangle
+        bool contains(Point point, Rectangle rec){
+            return ((point.x >= rec.a.x && point.x <= rec.b.x) && (point.y >= rec.a.y && point.y <= rec.b.y));
         }
 
 
@@ -710,16 +686,7 @@ class Rtree{
 
     private:
         Node *root;
-        //In this function we check if two rectangles overlapping
-        bool overlap(Rectangle m, Rectangle n){
-            return (max(m.a.x,n.a.x) <= min(m.b.x,n.b.x) && max(m.a.y,n.a.y) <= min(m.b.y,n.b.y));
-        }
-
-
-        //In this function we check if a point contains in a rectangle
-        bool contains(Point m, Rectangle n){
-            return ((m.x >= n.a.x && m.x <= n.b.x) && (m.y >= n.a.y && m.y <= n.b.y));
-        }
+        
 
 
         
@@ -731,9 +698,9 @@ class Rtree{
                 int curr = point.dim[i];
 
                 if(curr < from){
-                    totalDistance += math.pow(from - curr, 2);
+                    totalDistance += pow(from - curr, 2);
                 }else if(curr > to){
-                    totalDistance += math.pow(to - curr, 2);
+                    totalDistance += pow(to - curr, 2);
                 }
             }
             return totalDistance;
@@ -747,14 +714,14 @@ class Rtree{
                 double to = rec.b.dim[i];
                 double curr = point.dim[i];
 
-                currDistance += min(math.pow(from - curr, 2), math.pow(to - curr, 2));
+                currDistance += min(pow(from - curr, 2), pow(to - curr, 2));
 
                 for(int j=0;j<point.dim.size();j++){
                     if(i!=j){
                         from = rec.a.dim[j];
                         to = rec.b.dim[j];
                         curr = point.dim[j];
-                        currDistance += max(math.pow(from - curr, 2), math.pow(to - curr, 2));
+                        currDistance += max(pow(from - curr, 2), pow(to - curr, 2));
                     }
                     
                 }

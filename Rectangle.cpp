@@ -1,4 +1,7 @@
+#ifndef RECTANGLE_CPP
+#define RECTANGLE_CPP
 
+#include "Point.cpp"
 
 class Rectangle{
     public:
@@ -16,3 +19,4 @@ class Rectangle{
             return (b.x - a.x)*(b.y - a.y);
         }  
 };
+#endif
