@@ -1,3 +1,5 @@
+#include <vector>
+using namespace std;
 
 /**
 ** Class for Points represantation
@@ -6,11 +8,9 @@
 
 class Point{
     public:
-        double x;
-        double y;
+        vector<double> dim;
         Point();
-        Point(double lan, double lon){
-            x = lan;
-            y = lon;
+        Point(vector<double> &aDim){
+            dim = aDim;
         }
 };

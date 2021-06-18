@@ -1,8 +1,6 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
-#include <stack>
-#include <fstream>
 #include <utility>
 #include <limits>
 #include <cfloat>
@@ -38,7 +36,6 @@ vector<string> simple_tokenizer(string s)
 
 class Rtree{
     public:
-
         IndexfileUtilities *util;
         Rtree(string filename){
             util = new IndexfileUtilities();
@@ -61,16 +58,14 @@ class Rtree{
                 Record rec;
                 readFile.read((char *)&rec, sizeof(Record));
 
-                double lan = rec.getCoords()[0];
-                double lng = rec.getCoords()[1];
+                vector<double> coordsVector = rec.getCoords();
+                Point p(coordsVector);
 
-                Point p(lan, lng);
                 int blockId = (currSizeInFile - 1) / 32770 + 1;
                 int line = (currSizeInFile % 32770 - 2) / (int)sizeof(Record) + 1;
                 int entityNumber = getEntityNumber(blockId, line);
 
                 insert(p, entityNumber);
-                
 
                 currSizeInFile += sizeof(Record);
 
@@ -93,56 +88,40 @@ class Rtree{
             line = entityNumber & ((1 << 28) - 1);
         }
 
-
         void insert(Point p, int entNum){
             Node root = util->getNodeByBlockId(rootId);
 
             vector <Node> leafNodes(0);
             getLeafNode(root, p, leafNodes);
-            
 
             for(Node node : leafNodes) {
                 splitNode(node);
             }
         }
 
-
-    
         Rectangle calculateNewBound(Point p, Rectangle rec){
             Rectangle newRectangle;
-            pair<int, int> a, b;
 
-            newRectangle.a.x = min(p.x, rec.a.x);
-            newRectangle.b.x = max(p.x, rec.b.x);
-
-            newRectangle.a.y = min(p.y, rec.a.y);
-            newRectangle.a.y = max(p.y, rec.b.y);
+            for(int i = 0; i < p.dim.size(); i++) {
+                newRectangle.a.dim[i] = min(p.dim[i], rec.a.dim[i]);
+                newRectangle.b.dim[i] = max(p.dim[i], rec.b.dim[i]);
+            }
 
             return newRectangle;
-            
         }
 
-
-
-
         double calculateOverlap(Rectangle a, Rectangle b){
-            double overlap = 0;
+            double overlap = 1.0;
 
-            Point firstPoint, secondPoint;
-            firstPoint.x = max(a.a.x, b.a.x);
-            firstPoint.y = max(a.a.y, b.a.y);
+            for(int i = 0; i < a.a.dim.size(); i++) {
+                double maxLeft = max(a.a.dim[i], b.a.dim[i]);
+                double minRight = min(a.b.dim[i], b.b.dim[i]);
 
-            secondPoint.x = min(a.b.x, b.b.x);
-            secondPoint.y = min(a.b.y, b.b.y);
-            
-            overlap = max(secondPoint.x - firstPoint.x, 0.0) * max(secondPoint.y - firstPoint.y, 0.0);
-
+                overlap *= max(minRight - maxLeft, 0.0);
+            }
 
             return overlap;
         }
-
-
-
     
         Node findChildHeuristic(Node node, Point p){
             Node childNode = util->getNodeByBlockId(node.rectangles[0].first);
@@ -162,7 +141,6 @@ class Rtree{
                         minOverlap = sum;
                         minIndexRec = i;
                     }
-                    
                 }
 
             }else{
@@ -177,18 +155,12 @@ class Rtree{
                         minOverlap = sum;
                         minIndexRec = i;
                     }
-                    
                 }
             }
             
             Node nextNode = util->getNodeByBlockId(node.rectangles[minIndexRec].first);
             return nextNode;
         }
-
-
-
-
-
 
         void getLeafNode(Node node, Point p, vector <Node> &leafNodes){
             if(node.isLeaf){
@@ -214,12 +186,11 @@ class Rtree{
         }
 
 
-          void splitNode(Node &aNode){
+        void splitNode(Node &aNode){
             if(aNode.capacity == M+1) {
                 pair<vector<pair<int, Rectangle>>, vector<pair<int ,Rectangle>>> a = splitHeuristic(aNode);
                 vector<pair<int, Rectangle>> fir = a.first;
                 vector<pair<int, Rectangle>> sec = a.second;
-
 
                 aNode.rectangles = fir;
                 aNode.modifiedNode();
@@ -245,7 +216,6 @@ class Rtree{
             } 
         }
 
-
         Rectangle constructBig(vector <pair<int, Rectangle>> groupOfRectangles){
             Rectangle out = groupOfRectangles[0].second;
             for(int i=1;i<groupOfRectangles.size();i++){
@@ -255,7 +225,7 @@ class Rtree{
             return out;
         }
 
-        double marginHeuristic(vector <pair<int, Rectangle>> g1, vector<pair<int, Rectangle>> g2){
+        double marginHeuristic(vector <pair<int, Rectangle>> &g1, vector<pair<int, Rectangle>> &g2){
             double margin1, margin2;
 
             margin1 = constructBig(g1).getMargin();
@@ -264,7 +234,7 @@ class Rtree{
             return margin1 + margin2;
         }
 
-        double areaHeuristic(vector <pair<int, Rectangle>> g1, vector<pair<int ,Rectangle>> g2){
+        double areaHeuristic(vector <pair<int, Rectangle>> &g1, vector<pair<int ,Rectangle>> &g2){
             double area1, area2;
 
             area1 = constructBig(g1).getArea();
@@ -276,47 +246,39 @@ class Rtree{
 
         pair<vector<pair< int, Rectangle>>, vector<pair<int ,Rectangle>>> ChooseSplitIndex(vector<pair<int, Rectangle>> recs, int axis){
             sort(recs.begin(), recs.end(), [axis](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
-                {
-                    if(axis==0){
-                        if(lhs.second.a.x == rhs.second.a.x){
-                            return lhs.second.b.x < rhs.second.b.x;
-                        }
-                        return lhs.second.a.x < rhs.second.a.x;
-                    }
-                    if(axis==1){
-                        if(lhs.second.a.y == rhs.second.a.y){
-                            return lhs.second.b.y < rhs.second.b.y;
-                        }
-                        return lhs.second.a.y < rhs.second.a.y;
-                    }
-                });
-                vector<pair<int, Rectangle>> minGroup1, minGroup2;
-                double minCost = DBL_MAX;
-                int k = 1;
-                while(m-1+k < M){
-                    vector<pair<int, Rectangle>> group1, group2;
-                    int i;
-                    for(i=0;i<m-1+k;i++){
-                        group1.push_back(recs[i]);
-                    }
-                    for(;i<recs.size();i++){
-                        group2.push_back(recs[i]);
-                    }
-                    int currCost = areaHeuristic(group1, group2);
-        
-                    if(currCost < minCost){
-                        minCost = currCost;
-                        minGroup1 = group1;
-                        minGroup2 = group2;
-                    }
+            {
+                if(lhs.second.a.dim[axis] == rhs.second.a.dim[axis]) {
+                    return lhs.second.b.dim[axis] < rhs.second.b.dim[axis];
                 }
+
+                return lhs.second.a.dim[axis] == rhs.second.a.dim[axis];
+            });
+
+            vector<pair<int, Rectangle>> minGroup1, minGroup2;
+            double minCost = DBL_MAX;
+            int k = 1;
+            while(m-1+k < M){
+                vector<pair<int, Rectangle>> group1, group2;
+                int i;
+                for(i=0;i<m-1+k;i++){
+                    group1.push_back(recs[i]);
+                }
+                for(;i<recs.size();i++){
+                    group2.push_back(recs[i]);
+                }
+                int currCost = areaHeuristic(group1, group2);
+
+                if(currCost < minCost){
+                    minCost = currCost;
+                    minGroup1 = group1;
+                    minGroup2 = group2;
+                }
+            }
             pair<vector<pair<int,Rectangle>>, vector<pair<int,Rectangle>>> out;
             out.first = minGroup1;
             out.second = minGroup2;
             return out;
         }
-
-
 
         int ChooseSplitAxis(vector<pair<int, Rectangle>> recs){
             int minAxis;
@@ -324,18 +286,11 @@ class Rtree{
             for(int axis = 0;axis < dimension; axis++){
                 sort(recs.begin(), recs.end(), [axis](pair<int, Rectangle> &lhs, pair<int, Rectangle> &rhs)
                 {
-                    if(axis==0){
-                        if(lhs.second.a.x == rhs.second.a.x){
-                            return lhs.second.b.x < rhs.second.b.x;
-                        }
-                        return lhs.second.a.x < rhs.second.a.x;
+                    if(lhs.second.a.dim[axis] == rhs.second.a.dim[axis]) {
+                        return lhs.second.b.dim[axis] < rhs.second.b.dim[axis];
                     }
-                    if(axis==1){
-                        if(lhs.second.a.y == rhs.second.a.y){
-                            return lhs.second.b.y < rhs.second.b.y;
-                        }
-                        return lhs.second.a.y < rhs.second.a.y;
-                    }
+
+                    return lhs.second.a.dim[axis] == rhs.second.a.dim[axis];
                 });
                 
                 double currTotalCost = 0;
@@ -377,7 +332,9 @@ class Rtree{
 
                 for(pair<int, Rectangle> entity : indexData) {
                     Record record = util.getRecordFromDatafile(entity.first);
-                    Point currPoint(record.getCoords()[0], record.getCoords()[1]);
+                    vector <double> coordsVector = record.getCoords();
+
+                    Point currPoint(coordsVector);
 
                     if(contains(currPoint, range)) {
                         data.push_back(record);
@@ -402,7 +359,7 @@ class Rtree{
 
         vector<struct ABLinformation> combine(vector<struct ABLinformation> &a, vector<struct ABLinformation> &b){
             vector<struct ABLinformation> merged;
-            for(int i=0;i<a.size(), i++;){
+            for(int i=0;i<a.size(); i++){
                 merged.push_back(a[i]);
                 merged.push_back(b[i]);
             }
@@ -429,7 +386,10 @@ class Rtree{
                     output.push_back({ minDist, minMaxDist, i, node.rectangles[i].first });
                 }
 
-                sort(output.begin(), output.end());
+                sort(output.begin(), output.end(), [](struct ABLinformation &lhs, struct ABLinformation &rhs)
+                {
+                    return lhs.minMaxDist < rhs.minMaxDist;
+                });
                 output.resize(K);
 
                 return output;
@@ -485,29 +445,41 @@ class Rtree{
         
         vector<Record> knnQuery(Rectangle point, int K){
             // vector <datafileData>
-            vector <struct ABLinformation> ans = knnQueryUtility(rootId, point.a,  K);
+            vector <struct ABLinformation> indexFileAns = knnQueryUtility(rootId, point.a,  K);
+            vector <Record> eligibleRecords(0);
 
-            for(auto currAns : ans) {
+            for(auto currAns : indexFileAns) {
                 int entityNumber = currAns.entityNumber;
 
-                unsigned int blockId, line;
-                extractDatafileInfoFromEntityNumber(entityNumber, blockId, line);
+                Record rec = util->getRecordFromDatafile(entityNumber);
+                eligibleRecords.push_back(rec);
             }
+
+            return eligibleRecords;
         }
 
         //In this function we check if two rectangles overlapping
         bool overlap(Rectangle rec1, Rectangle rec2){
-            return (max(rec1.a.x, rec2.a.x) <= min(rec1.b.x, rec2.b.x) && max(rec1.a.y, rec2.a.y) <= min(rec1.b.y, rec2.b.y));
+            for(int i = 0; i < rec1.a.dim.size(); i++) {
+                if(max(rec1.a.dim[i], rec2.a.dim[i]) > min(rec1.b.dim[i], rec2.b.dim[i])) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 
         //In this function we check if a point contains in a rectangle
         bool contains(Point point, Rectangle rec){
-            return ((point.x >= rec.a.x && point.x <= rec.b.x) && (point.y >= rec.a.y && point.y <= rec.b.y));
+            for(int i = 0; i < rec.a.dim.size(); i++) {
+                if(point.dim[i] < rec.a.dim[i] || point.dim[i] > rec.b.dim[i]) {
+                    return false;
+                }
+            }
+
+            return true;
         }
-
-
-
 
     private:
         double MinDistance(Rectangle rec, Point point){
@@ -546,17 +518,8 @@ class Rtree{
                     
                 }
 
-
-
                 minDistance = min(minDistance, currDistance);
             }
             return minDistance;
         }
-
-
 };
-
-
-int main(){
-    return 0;
-}

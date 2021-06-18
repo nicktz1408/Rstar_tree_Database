@@ -13,10 +13,22 @@ class Rectangle{
             b = y;
         }
         double getMargin(){
-            return 2*(b.x - a.x) + 2*(b.y - a.y);
+            double margin = 0.0;
+
+            for(int i = 0; i < a.dim.size() - 1; i++) {
+                margin += (b.dim[i + 1] - a.dim[i + 1]) * (b.dim[i] - a.dim[i]);
+            }
+
+            return margin;
         }
         double getArea(){
-            return (b.x - a.x)*(b.y - a.y);
+            double area = 1.0;
+
+            for(int i = 0; i < a.dim.size(); i++) {
+                area *= (b.dim[i] - a.dim[i]);
+            }
+
+            return area;
         }  
 };
 #endif
