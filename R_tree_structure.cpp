@@ -37,12 +37,12 @@ vector<string> simple_tokenizer(string s)
 class Rtree{
     public:
         IndexfileUtilities *util;
-        Rtree(string filename){
+        Rtree(string datafileName){
             util = new IndexfileUtilities();
 
             Node *root = NULL;
             fstream readFile;
-            readFile.open(filename, ios::out |ios::binary);
+            readFile.open(datafileName, ios::out | ios::binary);
 
             int currSizeInFile = 0;
             bool blockEnds = true;

@@ -7,11 +7,8 @@
 
 #define blockSize 32768
 
-
 using namespace std;
 using namespace rapidxml;
-
-
 
 class XMLReader{
     public:
@@ -22,10 +19,9 @@ class XMLReader{
             cout << "XML parser destroyed!";
         }
 
-
         void getData(){
             xml_document<> doc;
-            xml_node<> * root_node = NULL;
+            xml_node<> *root_node = NULL;
             ifstream theFile("map.osm");
             vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
             buffer.push_back('\0');
@@ -49,12 +45,6 @@ class XMLReader{
                     latLon[1] = strtod(node->first_attribute("lon")->value(), NULL);
                     long long id = atoll(node->first_attribute("id")->value());
                     Record record(id, latLon);
-                
-                    /**
-                    cout << "\nNode id =   " << node->first_attribute("id")->value();
-                    cout << " Lat =   " << node->first_attribute("lat")->value();
-                    cout << " Lon =   " << node->first_attribute("lon")->value();
-                    **/
 
                     currSize += sizeof(record);
                     
@@ -68,20 +58,19 @@ class XMLReader{
                     }
 
                     myfile.write((char *) &record, sizeof(Record));
-                    
                 }
             }
         }
-
-    private:
 };
 
+class DatafileLoader {
+    public:
+        DatafileLoader() {
+            init();
+        }
 
-
-
-
-int main(){
-    XMLReader r;
-    r.getData();
-    return 0;
-}
+        void init() {
+            XMLReader r;
+            r.getData();
+        }
+};
