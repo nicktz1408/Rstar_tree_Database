@@ -9,7 +9,9 @@ using namespace std;
 class Point{
     public:
         vector<double> dim;
-        Point();
+        Point(){
+            
+        }
         Point(vector<double> &aDim){
             dim = aDim;
         }

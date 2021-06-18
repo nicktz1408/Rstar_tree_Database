@@ -14,11 +14,13 @@ using namespace std;
 class IndexfileUtilities {
 public:
     int nextId = 1;
-    IndexfileUtilities();
+    IndexfileUtilities(){
+        
+    }
 
     int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> rec){
         fstream myfile;
-        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary | ios::end);
+        myfile.open ("indexfile.dat", ios::in | ios::out | ios::binary);
         Node newNode(boundingBox, isLeafNode, rec);
         myfile.write((char *) &newNode, sizeof(Node));
         return nextId++;

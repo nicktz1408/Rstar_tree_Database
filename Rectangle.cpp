@@ -7,7 +7,9 @@ class Rectangle{
     public:
         Point a;
         Point b;
-        Rectangle();
+        Rectangle(){
+            
+        }
         Rectangle(Point x, Point y){
             a = x;
             b = y;

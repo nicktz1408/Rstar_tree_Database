@@ -4,6 +4,7 @@
 #include <utility>
 #include <limits>
 #include <cfloat>
+#include <cmath>
 using namespace std;
 
 #include "Record.cpp"

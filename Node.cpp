@@ -16,7 +16,9 @@ class Node{
         bool isLeaf;
         vector<pair<int, Rectangle>> rectangles;
         Rectangle boundingBox;
-        Node();
+        Node(){
+            
+        }
         Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec){
             isLeaf = isLeafNode;
             rectangles = rec;

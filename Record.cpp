@@ -7,7 +7,9 @@ using namespace std;
 
 class Record{
 public:
-    Record();
+    Record(){
+        
+    }
 
     Record(long long aId, vector <double> aCoords) {
         id = aId;
