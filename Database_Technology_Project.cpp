@@ -13,7 +13,7 @@ using namespace rapidxml;
 class XMLReader{
     public:
         XMLReader(){
-            cout << "XML parser created!";
+            cout << "XML parser created!"<<endl;
         }
         ~XMLReader(){
             cout << "XML parser destroyed!";
@@ -37,9 +37,12 @@ class XMLReader{
             short int i = 1;
             myfile.write((char *) &i, sizeof(short));
             i++;
+            int cnt = 0;
             for (xml_node<> * node = root_node->first_node("node"); node; node = node->next_sibling())
             {
-                if(!(string(node->name())).compare("node")){
+                
+                if(node && string(node->name()) == "node"){
+                    
                     vector<double> latLon(2);
                     latLon[0] = strtod(node->first_attribute("lat")->value(), NULL);
                     latLon[1] = strtod(node->first_attribute("lon")->value(), NULL);
@@ -49,6 +52,7 @@ class XMLReader{
                     currSize += sizeof(record);
                     
                     if(currSize > blockSize){
+                        
                         cout<<"The size of the block is "<<currSize<<endl;
                         currSize = 0;
                         currSize += sizeof(record);
@@ -56,10 +60,14 @@ class XMLReader{
                         myfile.write((char *) &i, sizeof(short));
                         i++;
                     }
-
+                   
                     myfile.write((char *) &record, sizeof(Record));
+                    
+                    
                 }
             }
+            myfile.close();
+           
         }
 };
 

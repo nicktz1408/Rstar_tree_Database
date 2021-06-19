@@ -42,8 +42,8 @@ class Rtree{
             util = new IndexfileUtilities();
 
             Node *root = NULL;
-            fstream readFile;
-            readFile.open(datafileName, ios::out | ios::binary);
+            ifstream readFile;
+            readFile.open(datafileName, ios::in | ios::binary);
 
             int currSizeInFile = 0;
             bool blockEnds = true;
@@ -74,6 +74,7 @@ class Rtree{
                     blockEnds = true;
                 }
             }
+            readFile.close();
         }
 
         int getEntityNumber(int blockId, int line) {
