@@ -445,9 +445,9 @@ class Rtree{
 
 
         
-        vector<Record> knnQuery(Rectangle point, int K){
+        vector<Record> knnQuery(Point point, int K){
             // vector <datafileData>
-            vector <struct ABLinformation> indexFileAns = knnQueryUtility(rootId, point.a,  K);
+            vector <struct ABLinformation> indexFileAns = knnQueryUtility(rootId, point,  K);
             vector <Record> eligibleRecords(0);
 
             for(auto currAns : indexFileAns) {
