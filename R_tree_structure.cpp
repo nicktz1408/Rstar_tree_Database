@@ -5,6 +5,7 @@
 #include <limits>
 #include <cfloat>
 #include <cmath>
+#include <iostream>
 using namespace std;
 
 #include "Record.cpp"
@@ -45,34 +46,34 @@ class Rtree{
             ifstream readFile;
             readFile.open(datafileName, ios::in | ios::binary);
 
-            int currSizeInFile = 0;
             bool blockEnds = true;
-
-            while(currSizeInFile <= 32768) {
-                if(blockEnds) {
-                    currSizeInFile += 2;
-                    blockEnds = false;
+            readFile.seekg(2, ios::beg);
+            Record rec;
+            for(long long int posInDisk = 0; posInDisk <= 32770 * 10; ) {
+                cout<<"Here"<<endl;
+                if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+                    posInDisk += 2;
+                    continue;
                 }
 
-                readFile.seekg(currSizeInFile);
+                
 
-                Record rec;
+                
                 readFile.read((char *)&rec, sizeof(Record));
 
                 vector<double> coordsVector = rec.getCoords();
                 Point p(coordsVector);
+                cout << coordsVector[0] << endl;
 
-                int blockId = (currSizeInFile - 1) / 32770 + 1;
-                int line = (currSizeInFile % 32770 - 2) / (int)sizeof(Record) + 1;
+                int blockId = posInDisk / 32770 + 1;
+                int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
                 int entityNumber = getEntityNumber(blockId, line);
 
                 insert(p, entityNumber);
 
-                currSizeInFile += sizeof(Record);
-
-                if(currSizeInFile % 32770 == 0) {
-                    blockEnds = true;
-                }
+                posInDisk += sizeof(Record); // 32byte
+            
+                cout << posInDisk<<" for loop ended" << endl;
             }
             readFile.close();
         }

@@ -48,21 +48,19 @@ class XMLReader{
                     latLon[1] = strtod(node->first_attribute("lon")->value(), NULL);
                     long long id = atoll(node->first_attribute("id")->value());
                     Record record(id, latLon);
-
-                    currSize += sizeof(record);
                     
-                    if(currSize > blockSize){
+                    currSize += sizeof(record);
+                    myfile.write((char *) &record, sizeof(Record));
+                    
+                    if(currSize == blockSize){
                         
                         cout<<"The size of the block is "<<currSize<<endl;
                         currSize = 0;
-                        currSize += sizeof(record);
                         
                         myfile.write((char *) &i, sizeof(short));
                         i++;
                     }
                    
-                    myfile.write((char *) &record, sizeof(Record));
-                    
                     
                 }
             }
