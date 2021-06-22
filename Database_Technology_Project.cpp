@@ -30,7 +30,7 @@ class XMLReader{
         
             root_node = doc.first_node("osm");
             ofstream myfile;
-            myfile.open ("datafile.dat", ios::out | ios::binary);
+            myfile.open("datafile.dat", ios::out | ios::binary);
 
             int currSize = 0;
 
@@ -48,9 +48,11 @@ class XMLReader{
                     latLon[1] = strtod(node->first_attribute("lon")->value(), NULL);
                     long long id = atoll(node->first_attribute("id")->value());
                     Record record(id, latLon);
+
                     
                     currSize += sizeof(record);
-                    myfile.write((char *) &record, sizeof(Record));
+                    
+                    myfile.write((char *) &record, sizeof(record));
                     
                     if(currSize == blockSize){
                         

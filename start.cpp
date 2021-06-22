@@ -14,7 +14,7 @@ int main() {
 
     DatafileLoader dl;
     
-    Rtree myTree();
+    Rtree myTree("datafile.dat");
     
     // vector<double> dimensions1 = {-12.12312, 98.1231231};
     // vector<double> dimensions2 = {-73.2134, 57.23423};

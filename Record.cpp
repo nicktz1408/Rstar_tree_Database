@@ -7,13 +7,15 @@ using namespace std;
 
 class Record{
 public:
+    
     Record(){
         
     }
 
     Record(long long aId, vector <double> aCoords) {
         id = aId;
-        coords = aCoords;
+        coords[0] = aCoords[0];
+        coords[1] = aCoords[1];
     }
 
     long long getId() {
@@ -21,13 +23,15 @@ public:
     }
 
     vector<double> getCoords() {
-        return coords;
+
+        return {coords[0], coords[1]};
     }
 
-    
 
 private:
     long long id;
-    vector<double> coords;
+    double coords[2];
+
+    
 };
 #endif

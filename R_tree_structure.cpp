@@ -39,17 +39,17 @@ vector<string> simple_tokenizer(string s)
 class Rtree{
     public:
         IndexfileUtilities *util;
-        Rtree(){
+        Rtree(string datafileName){
             util = new IndexfileUtilities();
 
             Node *root = NULL;
             ifstream readFile;
-            readFile.open("datafile.dat", ios::out | ios::binary);
+            readFile.open(datafileName, ios::out | ios::binary);
 
-            bool blockEnds = true;
-            readFile.seekg(2, ios::beg);
             
-            
+            Record *rec;
+            rec = new Record();
+        
             short int *temp;
             for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
                 cout<<"Here"<<endl;
@@ -62,14 +62,14 @@ class Rtree{
                 }
 
                 
-                Record *rec;
-                rec = new Record();
+                
+                
                 readFile.read((char *) rec, sizeof(Record));
-                cout << rec->getId()<<endl;
-
-                //vector<double> coordsVector = rec.getCoords();
-                Point p(rec->getCoords());
-                //cout << p.getCertainDim(0) << endl;
+                
+                vector<double> coordsVector;
+                coordsVector = rec->getCoords();
+                
+                Point p(coordsVector);
 
                 int blockId = posInDisk / 32770 + 1;
                 int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
@@ -98,11 +98,13 @@ class Rtree{
         }
 
         void insert(Point p, int entNum){
+            cout<<"Inside of insert function"<<endl;
             Node root = util->getNodeByBlockId(rootId);
+            cout<<"Inside of insert function"<<endl;
 
             vector <Node> leafNodes(0);
             getLeafNode(root, p, leafNodes);
-
+            cout<<"Inside of insert function"<<endl;
             for(Node node : leafNodes) {
                 splitNode(node);
             }
