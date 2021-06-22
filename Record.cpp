@@ -28,6 +28,6 @@ public:
 
 private:
     long long id;
-    vector <double> coords;
+    vector<double> coords;
 };
 #endif

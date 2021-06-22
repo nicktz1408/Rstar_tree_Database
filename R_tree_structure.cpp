@@ -39,31 +39,37 @@ vector<string> simple_tokenizer(string s)
 class Rtree{
     public:
         IndexfileUtilities *util;
-        Rtree(string datafileName){
+        Rtree(){
             util = new IndexfileUtilities();
 
             Node *root = NULL;
             ifstream readFile;
-            readFile.open(datafileName, ios::in | ios::binary);
+            readFile.open("datafile.dat", ios::out | ios::binary);
 
             bool blockEnds = true;
             readFile.seekg(2, ios::beg);
-            Record rec;
-            for(long long int posInDisk = 0; posInDisk <= 32770 * 10; ) {
+            
+            
+            short int *temp;
+            for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
                 cout<<"Here"<<endl;
                 if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+                    temp = new short();
+                    readFile.read((char *) temp, sizeof(short));
+                    cout<<*temp<<endl;
                     posInDisk += 2;
                     continue;
                 }
 
                 
+                Record *rec;
+                rec = new Record();
+                readFile.read((char *) rec, sizeof(Record));
+                cout << rec->getId()<<endl;
 
-                
-                readFile.read((char *)&rec, sizeof(Record));
-
-                vector<double> coordsVector = rec.getCoords();
-                Point p(coordsVector);
-                cout << coordsVector[0] << endl;
+                //vector<double> coordsVector = rec.getCoords();
+                Point p(rec->getCoords());
+                //cout << p.getCertainDim(0) << endl;
 
                 int blockId = posInDisk / 32770 + 1;
                 int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;

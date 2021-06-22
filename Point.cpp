@@ -12,7 +12,10 @@ class Point{
         Point(){
             
         }
-        Point(vector<double> &aDim){
+        Point(vector<double> aDim){
             dim = aDim;
+        }
+        double getCertainDim(int index){
+            return dim[index];
         }
 };
