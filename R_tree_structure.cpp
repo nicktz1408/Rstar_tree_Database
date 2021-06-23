@@ -16,7 +16,6 @@ using namespace std;
 #define m 25
 #define dimension 2
 
-int rootId = 1;
 
 struct ABLinformation{
     double minDist;
@@ -25,63 +24,79 @@ struct ABLinformation{
     int entityNumber;
 };
 
-vector<string> simple_tokenizer(string s)
-{
-    vector <string> splitString;
-    stringstream ss(s);
-    string word;
-    while (ss >> word) {
-        splitString.push_back(word);
-    }
-    return splitString;
-}
-
 class Rtree{
     public:
+        int rootId = 1;
+
+        vector<string> simple_tokenizer(string s)
+        {
+            vector <string> splitString;
+            stringstream ss(s);
+            string word;
+            while (ss >> word) {
+                splitString.push_back(word);
+            }
+            return splitString;
+        }
+
         IndexfileUtilities *util;
         Rtree(string datafileName){
             util = new IndexfileUtilities();
 
-            Node *root = NULL;
-            ifstream readFile;
-            readFile.open(datafileName, ios::out | ios::binary);
+            int dat1 = 12;
+            Point p1({ 1.0, 1.0 });
 
-            
-            Record *rec;
-            rec = new Record();
-        
-            short int *temp;
-            for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
-                cout<<"Here"<<endl;
-                if(posInDisk % 32770 == 0) { // reached startOfNextBlock
-                    temp = new short();
-                    readFile.read((char *) temp, sizeof(short));
-                    cout<<*temp<<endl;
-                    posInDisk += 2;
-                    continue;
-                }
+            Rectangle rec(p1, p1);
+            util->newBlockIdWithEmptyNode(rec, true);
 
-                
-                
-                
-                readFile.read((char *) rec, sizeof(Record));
-                
-                vector<double> coordsVector;
-                coordsVector = rec->getCoords();
-                
-                Point p(coordsVector);
+            int dat2 = 13;
+            Point p2({ 1.2, 1.2 });
 
-                int blockId = posInDisk / 32770 + 1;
-                int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
-                int entityNumber = getEntityNumber(blockId, line);
+            insert(p1, dat1);
+            insert(p2, dat2);
 
-                insert(p, entityNumber);
-
-                posInDisk += sizeof(Record); // 32byte
-            
-                cout << posInDisk<<" for loop ended" << endl;
-            }
-            readFile.close();
+//            util = new IndexfileUtilities();
+//
+//            Node *root = NULL;
+//            ifstream readFile;
+//            readFile.open(datafileName, ios::out | ios::binary);
+//
+//
+//            Record *rec;
+//            rec = new Record();
+//
+//            short int *temp;
+//            for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
+//                cout<<"Here"<<endl;
+//                if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+//                    temp = new short();
+//                    readFile.read((char *) temp, sizeof(short));
+//                    cout<<*temp<<endl;
+//                    posInDisk += 2;
+//                    continue;
+//                }
+//
+//
+//
+//
+//                readFile.read((char *) rec, sizeof(Record));
+//
+//                vector<double> coordsVector;
+//                coordsVector = rec->getCoords();
+//
+//                Point p(coordsVector);
+//
+//                int blockId = posInDisk / 32770 + 1;
+//                int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
+//                int entityNumber = getEntityNumber(blockId, line);
+//
+//                insert(p, entityNumber);
+//
+//                posInDisk += sizeof(Record); // 32byte
+//
+//                cout << posInDisk<<" for loop ended" << endl;
+//            }
+//            readFile.close();
         }
 
         int getEntityNumber(int blockId, int line) {
@@ -117,7 +132,7 @@ class Rtree{
         Rectangle calculateNewBound(Point p, Rectangle rec){
             Rectangle newRectangle;
 
-            for(int i = 0; i < p.dim.size(); i++) {
+            for(int i = 0; i < 2/*p.dim.size()*/; i++) {
                 newRectangle.a.dim[i] = min(p.dim[i], rec.a.dim[i]);
                 newRectangle.b.dim[i] = max(p.dim[i], rec.b.dim[i]);
             }
@@ -128,7 +143,7 @@ class Rtree{
         double calculateOverlap(Rectangle a, Rectangle b){
             double overlap = 1.0;
 
-            for(int i = 0; i < a.a.dim.size(); i++) {
+            for(int i = 0; i < 2/*a.a.dim.size()*/; i++) {
                 double maxLeft = max(a.a.dim[i], b.a.dim[i]);
                 double minRight = min(a.b.dim[i], b.b.dim[i]);
 
@@ -142,7 +157,7 @@ class Rtree{
             Node childNode = util->getNodeByBlockId(node.rectangles[0].first);
             int minIndexRec = 0;
             if(childNode.isLeaf){
-                vector<pair<int, Rectangle>> allRec = node.rectangles;
+                vector<pair<int, Rectangle>> allRec = node.getRectangles();
                 double minOverlap = DBL_MAX;
                 for(int i=0;i<node.capacity;i++){
                     double sum = 0;
@@ -159,7 +174,7 @@ class Rtree{
                 }
 
             }else{
-                vector<pair<int, Rectangle>> allRec = node.rectangles;
+                vector<pair<int, Rectangle>> allRec = node.getRectangles();
                 double minOverlap = DBL_MAX;
 
                 for(int i=0;i<node.capacity;i++){
@@ -214,7 +229,7 @@ class Rtree{
                 vector<pair<int, Rectangle>> fir = a.first;
                 vector<pair<int, Rectangle>> sec = a.second;
 
-                aNode.rectangles = fir;
+                aNode.setRectangles(fir);
                 aNode.modifiedNode();
 
                 Rectangle otherBoundingBox = constructBig(sec);
@@ -223,16 +238,29 @@ class Rtree{
                 Node otherNode = util->getNodeByBlockId(otherNodeId);
 
                 int parentId = aNode.parentId;
+
                 if(parentId == -1){
-                    rootId = util->newBlockID(constructBig(sec),aNode.isLeaf, sec);
+                    Rectangle bigRec = constructBig(sec);
+                    rootId = util->newBlockID(bigRec,aNode.isLeaf, sec);
+
                     Node rootNode = util->getNodeByBlockId(rootId);
                     rootNode.addChild(aNode.blockId, aNode.boundingBox);
                     rootNode.addChild(otherNodeId, otherBoundingBox);
                     rootNode.modifiedNode();
+
+                    aNode.parentId = rootId;
+                    aNode.modifiedNode();
+
+                    otherNode.parentId = rootId;
+                    aNode.modifiedNode();
                 }else{
                     Node parentNode = util->getNodeByBlockId(parentId);
                     parentNode.addChild(otherNodeId, otherBoundingBox);
                     parentNode.modifiedNode();
+
+                    otherNode.parentId = parentId;
+                    otherNode.modifiedNode();
+
                     splitNode(parentNode);
                 }
             }else{
@@ -341,8 +369,8 @@ class Rtree{
         }
 
         pair<vector<pair<int, Rectangle>>, vector<pair<int, Rectangle>>> splitHeuristic(Node &node) {
-            int axis = ChooseSplitAxis(node.rectangles);
-            return ChooseSplitIndex(node.rectangles, axis);
+            int axis = ChooseSplitAxis(node.getRectangles());
+            return ChooseSplitIndex(node.getRectangles(), axis);
         }
 
 
@@ -352,7 +380,7 @@ class Rtree{
             Node node = util.getNodeByBlockId(blockId);
 
             if(node.isLeaf){
-                vector<pair<int, Rectangle>> indexData = node.rectangles;
+                vector<pair<int, Rectangle>> indexData = node.getRectangles();
 
                 for(pair<int, Rectangle> entity : indexData) {
                     Record record = util.getRecordFromDatafile(entity.first);
@@ -484,7 +512,7 @@ class Rtree{
 
         //In this function we check if two rectangles overlapping
         bool overlap(Rectangle rec1, Rectangle rec2){
-            for(int i = 0; i < rec1.a.dim.size(); i++) {
+            for(int i = 0; i < 2/*rec1.a.dim.size()*/; i++) {
                 if(max(rec1.a.dim[i], rec2.a.dim[i]) > min(rec1.b.dim[i], rec2.b.dim[i])) {
                     return false;
                 }
@@ -496,7 +524,7 @@ class Rtree{
 
         //In this function we check if a point contains in a rectangle
         bool contains(Point point, Rectangle rec){
-            for(int i = 0; i < rec.a.dim.size(); i++) {
+            for(int i = 0; i < 2/*rec.a.dim.size()*/; i++) {
                 if(point.dim[i] < rec.a.dim[i] || point.dim[i] > rec.b.dim[i]) {
                     return false;
                 }
@@ -508,7 +536,7 @@ class Rtree{
     private:
         double MinDistance(Rectangle rec, Point point){
             double totalDistance = 0;
-            for(int i=0;i<point.dim.size();i++){
+            for(int i=0;i<2/*point.dim.size()*/;i++){
                 int from = rec.a.dim[i];
                 int to = rec.b.dim[i];
                 int curr = point.dim[i];
@@ -524,7 +552,7 @@ class Rtree{
 
         double MinMaxDistance(Rectangle rec, Point point){
             double minDistance = 0;
-            for(int i=0;i<point.dim.size();i++){
+            for(int i=0;i<2/*point.dim.size()*/;i++){
                 double currDistance = 0;
                 double from = rec.a.dim[i];
                 double to = rec.b.dim[i];
@@ -532,7 +560,7 @@ class Rtree{
 
                 currDistance += min(pow(from - curr, 2), pow(to - curr, 2));
 
-                for(int j=0;j<point.dim.size();j++){
+                for(int j=0;j<2/*point.dim.size()*/;j++){
                     if(i!=j){
                         from = rec.a.dim[j];
                         to = rec.b.dim[j];

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 #include <utility>
 #include <fstream>
@@ -14,16 +15,37 @@ class Node{
         int parentId;
         int blockId;
         bool isLeaf;
-        vector<pair<int, Rectangle>> rectangles;
+        pair<int, Rectangle> rectangles[50];
         Rectangle boundingBox;
         Node(){
             capacity = 0;
         }
-        Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec){
+        Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec, int aParentId, int aBlockId){
             isLeaf = isLeafNode;
-            rectangles = rec;
+
+            setRectangles(rec);
+
             boundingBox = bounding;
+            parentId = aParentId;
+            blockId = aBlockId;
+
             capacity = 0;
+        }
+
+        void setRectangles(vector<pair<int, Rectangle>> &rec) {
+            for(int i = 0; i < rec.size(); i++) {
+                rectangles[i] = rec[i];
+            }
+        }
+
+        vector<pair<int, Rectangle>> getRectangles() {
+            vector<pair<int, Rectangle>> out(50);
+
+            for(int i = 0; i < 50; i++) {
+                out[i] = rectangles[i];
+            }
+
+            return out;
         }
 
         void updateBounds(Rectangle aBoundingBox) {

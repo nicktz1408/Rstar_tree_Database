@@ -12,7 +12,7 @@ int main() {
 
 
 
-    DatafileLoader dl;
+//    DatafileLoader dl;
     
     Rtree myTree("datafile.dat");
     

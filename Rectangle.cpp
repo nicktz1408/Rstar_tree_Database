@@ -17,7 +17,7 @@ class Rectangle{
         double getMargin(){
             double margin = 0.0;
 
-            for(int i = 0; i < a.dim.size() - 1; i++) {
+            for(int i = 0; i < 1/*a.dim.size() - 1*/; i++) {
                 margin += (b.dim[i + 1] - a.dim[i + 1]) * (b.dim[i] - a.dim[i]);
             }
 
@@ -26,7 +26,7 @@ class Rectangle{
         double getArea(){
             double area = 1.0;
 
-            for(int i = 0; i < a.dim.size(); i++) {
+            for(int i = 0; i < 2/*a.dim.size()*/; i++) {
                 area *= (b.dim[i] - a.dim[i]);
             }
 

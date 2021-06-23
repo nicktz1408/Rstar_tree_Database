@@ -13,15 +13,22 @@ using namespace std;
 
 class IndexfileUtilities {
 public:
-    int nextId = 1;
+    int nextId;
     IndexfileUtilities(){
-        
+        nextId = 1;
     }
 
-    int newBlockID(Rectangle boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> rec){
-        fstream myfile;
+    int newBlockIdWithEmptyNode(Rectangle &boundingBox, bool isLeafNode) {
+        vector<pair<int, Rectangle>> rec(50);
+        return newBlockID(boundingBox, isLeafNode, rec);
+    }
+
+    int newBlockID(Rectangle &boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> &rec){
+        ofstream myfile;
         myfile.open ("indexfile.dat", ios::out | ios::binary);
-        Node newNode(boundingBox, isLeafNode, rec);
+        Node newNode(boundingBox, isLeafNode, rec, -1, nextId);
+
+        myfile.seekp(sizeof(Node) * (nextId - 1), ios::beg);
         myfile.write((char *) &newNode, sizeof(Node));
         return nextId++;
     }
@@ -75,18 +82,20 @@ public:
 
 private:
     Node getNodeByBlockIdHelper(int id) {
-        fstream myFile;
+        ifstream myFile;
         cout<<"IndexFile"<<endl;
         
         myFile.open ("indexfile.dat", ios::out | ios::binary);
-        int blockStart = (id - 1) * sizeof(Node);
+        int blockStart = (id - 1) * (int)sizeof(Node);
         myFile.seekg(blockStart, ios::beg);
         
-        Node node;
+        Node *node;
+        node = new Node();
 
-        myFile.read ((char*) &node, sizeof (Node));
+        myFile.read ((char*) node, sizeof (Node));
+
         myFile.close();
-        return node;
+        return *node;
     }
 };
 
