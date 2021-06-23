@@ -103,9 +103,13 @@ class Rtree{
             cout<<"Inside of insert function"<<endl;
 
             vector <Node> leafNodes(0);
+            cout<<"Inside of insert function"<<endl;
             getLeafNode(root, p, leafNodes);
             cout<<"Inside of insert function"<<endl;
             for(Node node : leafNodes) {
+                Rectangle rec(p, p);
+                node.addChild(entNum, rec);
+                node.modifiedNode();
                 splitNode(node);
             }
         }
@@ -174,30 +178,37 @@ class Rtree{
         }
 
         void getLeafNode(Node node, Point p, vector <Node> &leafNodes){
+            cout<<"Inside in getLeafNode function"<<endl;
             if(node.isLeaf){
+                cout<<"check1"<<endl;
                 leafNodes.push_back(node);
+                return;
             }
 
             bool containsObj = false;
-            
+    
             for(int i=0;i<node.capacity;i++){
                 if(contains(p, node.rectangles[i].second)){
                     containsObj = true;
                     int childId = node.rectangles[i].first;
+                    cout<<"check2"<<endl;
                     Node currentNode = util->getNodeByBlockId(childId);
-
+                    cout<<"check3"<<endl;
                     getLeafNode(currentNode, p, leafNodes);
                 }
             }
-
+            cout<<"check4"<<endl;
             if(!containsObj) {
+                cout<<"check5"<<endl;
                 Node chosenChild = findChildHeuristic(node, p);
+                cout<<"check6"<<endl;
                 getLeafNode(chosenChild, p, leafNodes);
             }
         }
 
 
         void splitNode(Node &aNode){
+            cout<<"Split"<<endl;
             if(aNode.capacity == M+1) {
                 pair<vector<pair<int, Rectangle>>, vector<pair<int ,Rectangle>>> a = splitHeuristic(aNode);
                 vector<pair<int, Rectangle>> fir = a.first;
@@ -224,7 +235,9 @@ class Rtree{
                     parentNode.modifiedNode();
                     splitNode(parentNode);
                 }
-            } 
+            }else{
+                
+            }
         }
 
         Rectangle constructBig(vector <pair<int, Rectangle>> groupOfRectangles){
