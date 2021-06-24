@@ -15,7 +15,7 @@ class Node{
         int parentId;
         int blockId;
         bool isLeaf;
-        pair<int, Rectangle> rectangles[50];
+        pair<int, Rectangle> rectangles[51];
         Rectangle boundingBox;
         Node(){
             capacity = 0;
@@ -36,12 +36,19 @@ class Node{
             for(int i = 0; i < rec.size(); i++) {
                 rectangles[i] = rec[i];
             }
+            capacity = rec.size();
+
+            for(int i = (int)rec.size(); i < 51; i++) {
+                Point p({ 0, 0 });
+                Rectangle rec(p, p);
+                rectangles[i] = { 0, rec };
+            }
         }
 
         vector<pair<int, Rectangle>> getRectangles() {
-            vector<pair<int, Rectangle>> out(50);
+            vector<pair<int, Rectangle>> out(51);
 
-            for(int i = 0; i < 50; i++) {
+            for(int i = 0; i < 51; i++) {
                 out[i] = rectangles[i];
             }
 

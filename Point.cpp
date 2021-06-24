@@ -20,4 +20,12 @@ class Point{
         double getCertainDim(int index){
             return dim[index];
         }
+
+        vector<double> getDim() {
+            vector<double> out(2);
+            out[0] = dim[0];
+            out[1] = dim[1];
+
+            return out;
+        }
 };

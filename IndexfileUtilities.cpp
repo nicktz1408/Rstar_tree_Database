@@ -46,19 +46,21 @@ public:
     }
 
     Record getRecordFromDatafile(int entityNumber){
-        Record output;
-
-        int blockNum = entityNumber >> 27;
-        int recordNum = (entityNumber << 5) >> 5;
-        ifstream myFile;
-        myFile.open("datafile.dat",ios::out | ios::binary );
-
-        int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
-        myFile.seekg(index, myFile.beg);
-        myFile.read((char *)&output, sizeof(Record));
-
-        myFile.close();
+        Record output(entityNumber, { (double)entityNumber });
         return output;
+//        Record output;
+//
+//        int blockNum = entityNumber >> 27;
+//        int recordNum = (entityNumber << 5) >> 5;
+//        ifstream myFile;
+//        myFile.open("datafile.dat",ios::out | ios::binary );
+//
+//        int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
+//        myFile.seekg(index, myFile.beg);
+//        myFile.read((char *)&output, sizeof(Record));
+//
+//        myFile.close();
+//        return output;
     }
 
 

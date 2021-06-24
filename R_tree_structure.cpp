@@ -43,17 +43,41 @@ class Rtree{
         Rtree(string datafileName){
             util = new IndexfileUtilities();
 
-            int dat1 = 12;
-            Point p1({ 1.0, 1.0 });
+//            int dat1 = 12;
+//            Point p1({ 1.0, 1.0 });
+//
+//            Rectangle rec(p1, p1);
+//            util->newBlockIdWithEmptyNode(rec, true);
+//
+//            int dat2 = 13;
+//            Point p2({ 1.2, 1.2 });
 
-            Rectangle rec(p1, p1);
-            util->newBlockIdWithEmptyNode(rec, true);
+            for(int i = 1; i <= 60; i++) {
+                if(i == 51) {
+                    cout << "YES" << endl;
+                }
 
-            int dat2 = 13;
-            Point p2({ 1.2, 1.2 });
+                int dat = i;
+                Point p({ i * 0.1, i * 0.1 });
+                Rectangle rec(p, p);
 
-            insert(p1, dat1);
-            insert(p2, dat2);
+                if(i == 1) {
+                    util->newBlockIdWithEmptyNode(rec, true);
+                }
+
+                insert(p, dat);
+            }
+
+//            insert(p1, dat1);
+//            insert(p2, dat2);
+
+            Point searchPoint1({ 0.9, 0.9 }), searchPoint2({ 1.1, 1.1 });
+
+            Rectangle rec1(searchPoint1, searchPoint2);
+            rangeQuery(rec1);
+
+            knnQuery(searchPoint1, 1);
+            knnQuery(searchPoint1, 2);
 
 //            util = new IndexfileUtilities();
 //
@@ -229,23 +253,24 @@ class Rtree{
                 vector<pair<int, Rectangle>> fir = a.first;
                 vector<pair<int, Rectangle>> sec = a.second;
 
-                aNode.setRectangles(fir);
-                aNode.modifiedNode();
+                Rectangle firBig = constructBig(fir), secBig = constructBig(sec);
 
-                Rectangle otherBoundingBox = constructBig(sec);
+                aNode.setRectangles(fir);
+                aNode.boundingBox = firBig;
+                aNode.modifiedNode();
                 
-                int otherNodeId = util->newBlockID(otherBoundingBox,aNode.isLeaf, sec);
+                int otherNodeId = util->newBlockID(secBig,aNode.isLeaf, sec);
                 Node otherNode = util->getNodeByBlockId(otherNodeId);
 
                 int parentId = aNode.parentId;
 
                 if(parentId == -1){
-                    Rectangle bigRec = constructBig(sec);
-                    rootId = util->newBlockID(bigRec,aNode.isLeaf, sec);
+                    Rectangle bigRec = constructBig({ { 1, firBig }, { 2, secBig } });
+                    rootId = util->newBlockID(bigRec,false, sec);
 
                     Node rootNode = util->getNodeByBlockId(rootId);
                     rootNode.addChild(aNode.blockId, aNode.boundingBox);
-                    rootNode.addChild(otherNodeId, otherBoundingBox);
+                    rootNode.addChild(otherNodeId, secBig);
                     rootNode.modifiedNode();
 
                     aNode.parentId = rootId;
@@ -255,7 +280,7 @@ class Rtree{
                     aNode.modifiedNode();
                 }else{
                     Node parentNode = util->getNodeByBlockId(parentId);
-                    parentNode.addChild(otherNodeId, otherBoundingBox);
+                    parentNode.addChild(otherNodeId, secBig);
                     parentNode.modifiedNode();
 
                     otherNode.parentId = parentId;
@@ -308,8 +333,8 @@ class Rtree{
 
             vector<pair<int, Rectangle>> minGroup1, minGroup2;
             double minCost = DBL_MAX;
-            int k = 1;
-            while(m-1+k < M){
+
+            for(int k = 1; m - 1 + k < M; k++) {
                 vector<pair<int, Rectangle>> group1, group2;
                 int i;
                 for(i=0;i<m-1+k;i++){
@@ -346,18 +371,17 @@ class Rtree{
                 });
                 
                 double currTotalCost = 0;
-                int k = 1;
-                while(m-1+k < M){
+
+                for(int k = 1; m - 1 + k < M; k++) {
                     vector<pair<int, Rectangle>> group1, group2;
                     int i;
-                    for(i=0;i<m-1+k;i++){
+                    for (i = 0; i < m - 1 + k; i++) {
                         group1.push_back(recs[i]);
                     }
-                    for(;i<recs.size();i++){
+                    for (; i < recs.size(); i++) {
                         group2.push_back(recs[i]);
                     }
                     currTotalCost += marginHeuristic(group1, group2);
-                    
                 }
                 
                 if(currTotalCost < minCost){
@@ -382,9 +406,11 @@ class Rtree{
             if(node.isLeaf){
                 vector<pair<int, Rectangle>> indexData = node.getRectangles();
 
-                for(pair<int, Rectangle> entity : indexData) {
+                for(int i = 0; i < node.capacity; i++) {
+                    pair<int, Rectangle> entity = indexData[i];
+
                     Record record = util.getRecordFromDatafile(entity.first);
-                    vector <double> coordsVector = record.getCoords();
+                    vector <double> coordsVector = entity.second.a.getDim(); //  record.getCoords();
 
                     Point currPoint(coordsVector);
 
@@ -392,6 +418,8 @@ class Rtree{
                         data.push_back(record);
                     }
                 }
+
+                return;
             }
 
             for(int i=0;i<node.capacity;i++){
@@ -551,7 +579,7 @@ class Rtree{
         }
 
         double MinMaxDistance(Rectangle rec, Point point){
-            double minDistance = 0;
+            double minDistance = DBL_MAX;
             for(int i=0;i<2/*point.dim.size()*/;i++){
                 double currDistance = 0;
                 double from = rec.a.dim[i];
