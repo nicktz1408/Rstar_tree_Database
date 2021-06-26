@@ -41,6 +41,8 @@ class Rtree{
 
         IndexfileUtilities *util;
         Rtree(string datafileName){
+            cout << sizeof(Node) << endl;
+
             util = new IndexfileUtilities();
 
 //            int dat1 = 12;
@@ -52,8 +54,8 @@ class Rtree{
 //            int dat2 = 13;
 //            Point p2({ 1.2, 1.2 });
 
-            for(int i = 1; i <= 60; i++) {
-                if(i == 51) {
+            for(int i = 1; i <= 1055; i++) {
+                if(i >= 51) {
                     cout << "YES" << endl;
                 }
 
@@ -279,7 +281,11 @@ class Rtree{
                     aNode.modifiedNode();
 
                     otherNode.parentId = rootId;
-                    aNode.modifiedNode();
+                    otherNode.modifiedNode();
+
+                    Node aNodeCopy = util->getNodeByBlockId(1);
+                    Node otherNodeCopy = util->getNodeByBlockId(2);
+                    Node rootCopy = util->getNodeByBlockId(3);
                 }else{
                     Node parentNode = util->getNodeByBlockId(parentId);
                     parentNode.addChild(otherNodeId, secBig);

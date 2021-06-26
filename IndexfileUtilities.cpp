@@ -24,21 +24,19 @@ public:
     }
 
     int newBlockID(Rectangle &boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> &rec, bool shouldInit){
-        ofstream myfile;
-        myfile.open ("indexfile.dat", ios::out | ios::binary);
         Node newNode(boundingBox, isLeafNode, rec, -1, nextId, shouldInit);
+        newNode.modifiedNode();
 
-        myfile.seekp(sizeof(Node) * (nextId - 1), ios::beg);
-        myfile.write((char *) &newNode, sizeof(Node));
         return nextId++;
     }
 
     void modifiedBlockId(Node aNode, int id){
         fstream myfile;
         myfile.open ("indexfile.dat", ios::out | ios::binary);
-        int blockStart = (id - 1) * sizeof(Node);
+        int blockStart = (id - 1) * (int)sizeof(Node);
         myfile.seekp(blockStart, ios::beg);
         myfile.write((char *) &aNode, sizeof(Node));
+        myfile.close();
     }
 
     Node getNodeByBlockId(int id) {
@@ -93,6 +91,8 @@ private:
         
         Node *node;
         node = new Node();
+
+        cout << sizeof(Node) << " " << sizeof(node) << endl;
 
         myFile.read ((char*) node, sizeof (Node));
 

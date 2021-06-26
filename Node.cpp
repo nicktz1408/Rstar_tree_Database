@@ -18,9 +18,14 @@ class Node{
         pair<int, Rectangle> rectangles[51];
         Rectangle boundingBox;
         Node(){
+            initializeRectVector();
             capacity = 0;
+            parentId = -1;
+            blockId = -1;
+            isLeaf = true;
         }
         Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec, int aParentId, int aBlockId, bool shouldInit){
+            initializeRectVector();
             isLeaf = isLeafNode;
 
             setRectangles(rec, shouldInit);
@@ -28,6 +33,14 @@ class Node{
             boundingBox = bounding;
             parentId = aParentId;
             blockId = aBlockId;
+        }
+
+        void initializeRectVector() {
+            for(int i = 0; i < 51; i++) {
+                Point p({ 0, 0 });
+                Rectangle rec(p, p);
+                rectangles[i] = { 0, rec };
+            }
         }
 
         void setRectangles(vector<pair<int, Rectangle>> &rec, bool shouldInit) {
@@ -72,7 +85,7 @@ class Node{
             ofstream myfile;
             myfile.open ("indexfile.dat", ios::out | ios::binary);
 
-            int blockStart = (blockId - 1) * sizeof(Node);
+            int blockStart = (blockId - 1) * (int)sizeof(Node);
             myfile.seekp(blockStart, ios::beg);
             myfile.write((char *) this, sizeof(Node));
             myfile.close();

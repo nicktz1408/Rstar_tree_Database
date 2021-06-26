@@ -10,7 +10,8 @@ class Point{
     public:
         double dim[2];
         Point(){
-            
+            dim[0] = 0.0;
+            dim[1] = 0.0;
         }
         Point(vector<double> aDim){
 //            dim = aDim;
