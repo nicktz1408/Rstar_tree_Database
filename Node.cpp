@@ -20,23 +20,21 @@ class Node{
         Node(){
             capacity = 0;
         }
-        Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec, int aParentId, int aBlockId){
+        Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec, int aParentId, int aBlockId, bool shouldInit){
             isLeaf = isLeafNode;
 
-            setRectangles(rec);
+            setRectangles(rec, shouldInit);
 
             boundingBox = bounding;
             parentId = aParentId;
             blockId = aBlockId;
-
-            capacity = 0;
         }
 
-        void setRectangles(vector<pair<int, Rectangle>> &rec) {
+        void setRectangles(vector<pair<int, Rectangle>> &rec, bool shouldInit) {
             for(int i = 0; i < rec.size(); i++) {
                 rectangles[i] = rec[i];
             }
-            capacity = rec.size();
+            capacity = (shouldInit ? rec.size() : 0);
 
             for(int i = (int)rec.size(); i < 51; i++) {
                 Point p({ 0, 0 });

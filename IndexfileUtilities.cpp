@@ -20,13 +20,13 @@ public:
 
     int newBlockIdWithEmptyNode(Rectangle &boundingBox, bool isLeafNode) {
         vector<pair<int, Rectangle>> rec(50);
-        return newBlockID(boundingBox, isLeafNode, rec);
+        return newBlockID(boundingBox, isLeafNode, rec, false);
     }
 
-    int newBlockID(Rectangle &boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> &rec){
+    int newBlockID(Rectangle &boundingBox, bool isLeafNode, vector<pair<int, Rectangle>> &rec, bool shouldInit){
         ofstream myfile;
         myfile.open ("indexfile.dat", ios::out | ios::binary);
-        Node newNode(boundingBox, isLeafNode, rec, -1, nextId);
+        Node newNode(boundingBox, isLeafNode, rec, -1, nextId, shouldInit);
 
         myfile.seekp(sizeof(Node) * (nextId - 1), ios::beg);
         myfile.write((char *) &newNode, sizeof(Node));

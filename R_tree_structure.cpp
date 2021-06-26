@@ -255,18 +255,20 @@ class Rtree{
 
                 Rectangle firBig = constructBig(fir), secBig = constructBig(sec);
 
-                aNode.setRectangles(fir);
+                aNode.setRectangles(fir, true);
                 aNode.boundingBox = firBig;
                 aNode.modifiedNode();
                 
-                int otherNodeId = util->newBlockID(secBig,aNode.isLeaf, sec);
+                int otherNodeId = util->newBlockID(secBig,aNode.isLeaf, sec, true);
                 Node otherNode = util->getNodeByBlockId(otherNodeId);
 
                 int parentId = aNode.parentId;
 
                 if(parentId == -1){
                     Rectangle bigRec = constructBig({ { 1, firBig }, { 2, secBig } });
-                    rootId = util->newBlockID(bigRec,false, sec);
+
+                    vector<pair<int, Rectangle>> emptyArr(50);
+                    rootId = util->newBlockID(bigRec,false, emptyArr, false);
 
                     Node rootNode = util->getNodeByBlockId(rootId);
                     rootNode.addChild(aNode.blockId, aNode.boundingBox);
@@ -288,8 +290,6 @@ class Rtree{
 
                     splitNode(parentNode);
                 }
-            }else{
-                
             }
         }
 
