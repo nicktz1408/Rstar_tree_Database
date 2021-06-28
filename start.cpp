@@ -122,13 +122,6 @@ int main() {
     Point point2(dimensions1);
     Point point3(dimensions1);
 
-    
-    vector<double> dimensions3 = {-10.8978432, 89.7623476};
-    Point point3(dimensions3);
-
-
-    
-
     for(int k = 1; k <= 50; k++) {
         auto start = std::chrono::high_resolution_clock::now();
         myTree.knnQuery(point3, k);
@@ -139,12 +132,12 @@ int main() {
     }
 
 
-
+    vector<double> medianDim = {40.7062, -74.0105};
 
 
     for(int k = 1; k <= 50; k++) {
-        vector<double> newCoords1 = {point1.getCoords()[0] - (40.7062 - 40.4335)*k / 50, point1.getCoords()[1] - (-74.0105 - (-74.0799))*k / 50};
-        vector<double> newCoords2 = {point1.getCoords()[0] + (40.7766 - 40.7062)*k / 50, point1.getCoords()[1] - (-73.9613 - (-74.0105))*k / 50};
+        vector<double> newCoords1 = {medianDim[0] - (40.7062 - 40.4335)*k / 50, medianDim[1] - (-74.0105 - (-74.0799))*k / 50};
+        vector<double> newCoords2 = {medianDim[0] + (40.7766 - 40.7062)*k / 50, medianDim[1] - (-73.9613 - (-74.0105))*k / 50};
 
         point2.setCoords(newCoords1);
         point3.setCoords(newCoords2);
@@ -155,20 +148,7 @@ int main() {
 
         long long serialTime = serialSearchRange(rectangle);
         //cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
-        
-
     }
-    
-
-
-
-
-    // cout<<"The time of the Range Query is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(middle-start).count()<<endl;
-    // cout<<"THe time of the K-Nearest-Neighbor is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-middle).count()<<endl;
-
-    
-
-
 
     return 0;
 }
