@@ -4,19 +4,21 @@ using namespace std;
 /**
 ** Class for Points represantation
 **/
+#define dimensions 2
 
 
 class Point{
     public:
-        double dim[2];
+        double dim[dimensions];
         Point(){
             dim[0] = 0.0;
             dim[1] = 0.0;
         }
         Point(vector<double> aDim){
 //            dim = aDim;
-            dim[0] = aDim[0];
-            dim[1] = aDim[1];
+            for(int i =0;i<aDim.size();i++){
+                dim[i] = aDim[i];
+            }
         }
         double getCertainDim(int index){
             return dim[index];
@@ -24,9 +26,16 @@ class Point{
 
         vector<double> getDim() {
             vector<double> out(2);
-            out[0] = dim[0];
-            out[1] = dim[1];
+            for(int i =0;i<coords.size();i++){
+                dim[i] = out[i];
+            }
 
             return out;
+        }
+
+        void setCoords(vector<double> coords){
+            for(int i =0;i<coords.size();i++){
+                dim[i] = coords[i];
+            }
         }
 };

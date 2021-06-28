@@ -6,6 +6,8 @@
 #include <vector>
 #include <cmath>
 
+
+
 using namespace std;
 
 double EuclideanDistance(Point a, Point b){
@@ -17,7 +19,7 @@ double EuclideanDistance(Point a, Point b){
 }
 
 vector <Record> getAllRecords() {
-    fstream datafile;
+    ifstream datafile;
     datafile.open("datafile.dat", ios::out | ios:: binary);
     vector<Record> records;
     Record *rec;
@@ -83,8 +85,8 @@ void analyzeData() {
 
     cout << "Total # of records: " << records.size() << endl;
 
-    double minLat = -210.0, maxLat = 210.0, sumLat = 0.0;
-    double minLng = -210.0, maxLng = 210.0, sumLng = 0.0;
+    double minLat = 210.0, maxLat = -210.0, sumLat = 0.0;
+    double minLng = 210.0, maxLng = -210.0, sumLng = 0.0;
 
     for(int i = 0; i < records.size(); i++) {
         minLat = min(minLat, records[i].getCoords()[0]);
@@ -96,9 +98,16 @@ void analyzeData() {
         sumLat += records[i].getCoords()[0];
         sumLng += records[i].getCoords()[1];
     }
-
+    cout << "Sum Lat: " << sumLat << endl;
+    cout << "Sum Lng: " << sumLng << endl;
     cout << "Lat: " << minLat << " " << maxLat << " " << sumLat / records.size() << endl;
     cout << "Lng: " << minLng << " " << maxLng << " " << sumLng / records.size() << endl;
+}
+void printData(){
+    vector <Record> records = getAllRecords();
+    for(int i=0;i<records.size(); i++){
+        cout << records[i].getCoords()[0]<<" "<< records[i].getCoords()[1]<<endl;
+    }
 }
 
 int main() {
@@ -108,25 +117,17 @@ int main() {
     
     Rtree myTree("datafile.dat");
     
-    vector<double> dimensions1 = {-12.12312, 98.1231231};
-    vector<double> dimensions2 = {-73.2134, 57.23423};
+    vector<double> dimensions1 = {40.7062, -74.0105};
     Point point1(dimensions1);
-    Point point2(dimensions2);
+    Point point2(dimensions1);
+    Point point3(dimensions1);
 
     
-    Rectangle rectangle(point1, point2);
     vector<double> dimensions3 = {-10.8978432, 89.7623476};
     Point point3(dimensions3);
 
-    // (5, 10) (5, 10)
-    // (4, 9) (6, 11)
-    // (2, 7) (8, 13)
 
-    auto start = std::chrono::high_resolution_clock::now();
-    myTree.rangeQuery(rectangle);
-    auto middle = std::chrono::high_resolution_clock::now();
-    myTree.knnQuery(point3, 3);
-    auto finish = std::chrono::high_resolution_clock::now();
+    
 
     for(int k = 1; k <= 50; k++) {
         auto start = std::chrono::high_resolution_clock::now();
@@ -134,14 +135,36 @@ int main() {
         auto finish = std::chrono::high_resolution_clock::now();
 
         long long serialTime = serialSearchKNN(point3, k);
+        cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
     }
 
 
 
 
 
-    cout<<"The time of the Range Query is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(middle-start).count()<<endl;
-    cout<<"THe time of the K-Nearest-Neighbor is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-middle).count()<<endl;
+    for(int k = 1; k <= 50; k++) {
+        vector<double> newCoords1 = {point1.getCoords()[0] - (40.7062 - 40.4335)*k / 50, point1.getCoords()[1] - (-74.0105 - (-74.0799))*k / 50};
+        vector<double> newCoords2 = {point1.getCoords()[0] + (40.7766 - 40.7062)*k / 50, point1.getCoords()[1] - (-73.9613 - (-74.0105))*k / 50};
+
+        point2.setCoords(newCoords1);
+        point3.setCoords(newCoords2);
+        Rectangle rectangle(point2, point3);
+        auto start = std::chrono::high_resolution_clock::now();
+        myTree.rangeQuery(rectangle);
+        auto finish = std::chrono::high_resolution_clock::now();
+
+        long long serialTime = serialSearchRange(rectangle);
+        //cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
+        
+
+    }
+    
+
+
+
+
+    // cout<<"The time of the Range Query is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(middle-start).count()<<endl;
+    // cout<<"THe time of the K-Nearest-Neighbor is: "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-middle).count()<<endl;
 
     
 
