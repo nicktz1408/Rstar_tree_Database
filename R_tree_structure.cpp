@@ -40,10 +40,13 @@ class Rtree{
         }
 
         IndexfileUtilities *util;
+        Rtree(){
+            
+        }
         Rtree(string datafileName){
             cout << sizeof(Node) << endl;
 
-            util = new IndexfileUtilities();
+            //util = new IndexfileUtilities();
 
 //            int dat1 = 12;
 //            Point p1({ 1.0, 1.0 });
@@ -54,75 +57,75 @@ class Rtree{
 //            int dat2 = 13;
 //            Point p2({ 1.2, 1.2 });
 
-            for(int i = 1; i <= 1055; i++) {
-                if(i >= 51) {
-                    cout << "YES" << endl;
-                }
+            // for(int i = 1; i <= 1055; i++) {
+            //     if(i >= 51) {
+            //         cout << "YES" << endl;
+            //     }
 
-                int dat = i;
-                Point p({ i * 0.1, i * 0.1 });
-                Rectangle rec(p, p);
+            //     int dat = i;
+            //     Point p({ i * 0.1, i * 0.1 });
+            //     Rectangle rec(p, p);
 
-                if(i == 1) {
-                    util->newBlockIdWithEmptyNode(rec, true);
-                }
+            //     if(i == 1) {
+            //         util->newBlockIdWithEmptyNode(rec, true);
+            //     }
 
-                insert(p, dat);
-            }
+            //     insert(p, dat);
+            // }
 
 //            insert(p1, dat1);
 //            insert(p2, dat2);
 
-            Point searchPoint1({ 0.9, 0.9 }), searchPoint2({ 1.1, 1.1 });
+            // Point searchPoint1({ 0.9, 0.9 }), searchPoint2({ 1.1, 1.1 });
 
-            Rectangle rec1(searchPoint1, searchPoint2);
-            rangeQuery(rec1);
+            // Rectangle rec1(searchPoint1, searchPoint2);
+            // rangeQuery(rec1);
 
-            knnQuery(searchPoint1, 1);
-            knnQuery(searchPoint1, 2);
+            // knnQuery(searchPoint1, 1);
+            // knnQuery(searchPoint1, 2);
 
-//            util = new IndexfileUtilities();
-//
-//            Node *root = NULL;
-//            ifstream readFile;
-//            readFile.open(datafileName, ios::out | ios::binary);
-//
-//
-//            Record *rec;
-//            rec = new Record();
-//
-//            short int *temp;
-//            for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
-//                cout<<"Here"<<endl;
-//                if(posInDisk % 32770 == 0) { // reached startOfNextBlock
-//                    temp = new short();
-//                    readFile.read((char *) temp, sizeof(short));
-//                    cout<<*temp<<endl;
-//                    posInDisk += 2;
-//                    continue;
-//                }
-//
-//
-//
-//
-//                readFile.read((char *) rec, sizeof(Record));
-//
-//                vector<double> coordsVector;
-//                coordsVector = rec->getCoords();
-//
-//                Point p(coordsVector);
-//
-//                int blockId = posInDisk / 32770 + 1;
-//                int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
-//                int entityNumber = getEntityNumber(blockId, line);
-//
-//                insert(p, entityNumber);
-//
-//                posInDisk += sizeof(Record); // 32byte
-//
-//                cout << posInDisk<<" for loop ended" << endl;
-//            }
-//            readFile.close();
+           util = new IndexfileUtilities();
+
+           Node *root = NULL;
+           ifstream readFile;
+           readFile.open(datafileName, ios::out | ios::binary);
+
+
+           Record *rec;
+           rec = new Record();
+
+           short int *temp;
+           for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
+               cout<<"Here"<<endl;
+               if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+                   temp = new short();
+                   readFile.read((char *) temp, sizeof(short));
+                   cout<<*temp<<endl;
+                   posInDisk += 2;
+                   continue;
+               }
+
+
+
+
+               readFile.read((char *) rec, sizeof(Record));
+
+               vector<double> coordsVector;
+               coordsVector = rec->getCoords();
+
+               Point p(coordsVector);
+
+               int blockId = posInDisk / 32770 + 1;
+               int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
+               int entityNumber = getEntityNumber(blockId, line);
+
+               insert(p, entityNumber);
+
+               posInDisk += sizeof(Record); // 32byte
+
+               cout << posInDisk<<" for loop ended" << endl;
+           }
+           readFile.close();
         }
 
         int getEntityNumber(int blockId, int line) {
@@ -183,6 +186,7 @@ class Rtree{
             Node childNode = util->getNodeByBlockId(node.rectangles[0].first);
             int minIndexRec = 0;
             if(childNode.isLeaf){
+                cout<<"NNNNNNNNNNN"<<endl;
                 vector<pair<int, Rectangle>> allRec = node.getRectangles();
                 double minOverlap = DBL_MAX;
                 for(int i=0;i<node.capacity;i++){
@@ -200,6 +204,7 @@ class Rtree{
                 }
 
             }else{
+                cout<<"Mmmmmmmmmmm"<<endl;
                 vector<pair<int, Rectangle>> allRec = node.getRectangles();
                 double minOverlap = DBL_MAX;
 
