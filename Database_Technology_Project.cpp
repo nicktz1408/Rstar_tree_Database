@@ -16,7 +16,7 @@ class XMLReader{
             cout << "XML parser created!"<<endl;
         }
         ~XMLReader(){
-            cout << "XML parser destroyed!";
+            cout << "XML parser destroyed!"<<endl;
         }
 
         void getData(){

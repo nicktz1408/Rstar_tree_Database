@@ -127,7 +127,7 @@ int main() {
         auto finish = std::chrono::high_resolution_clock::now();
 
         long long serialTime = serialSearchKNN(point3, k);
-        //cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
+        cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
     }
 
 
