@@ -5,7 +5,7 @@
 #include "Record.cpp"
 #include <string>
 
-#define blockSize 32768
+#define blockSize 32762
 
 using namespace std;
 using namespace rapidxml;
@@ -20,6 +20,7 @@ class XMLReader{
         }
 
         void getData(){
+            int j = 1;
             xml_document<> doc;
             xml_node<> *root_node = NULL;
             ifstream theFile("map.osm");
@@ -36,6 +37,7 @@ class XMLReader{
 
             short int i = 1;
             myfile.write((char *) &i, sizeof(short));
+            currSize += 2;
             i++;
             int cnt = 0;
             for (xml_node<> * node = root_node->first_node("node"); node; node = node->next_sibling())
@@ -50,22 +52,24 @@ class XMLReader{
                     Record record(id, latLon);
 
                     
-                    currSize += sizeof(record);
-                    
-                    myfile.write((char *) &record, sizeof(record));
+                    currSize += sizeof(Record);
+                    myfile.write((char *) &record, sizeof(Record));
                     
                     if(currSize == blockSize){
                         
                         cout<<"The size of the block is "<<currSize<<endl;
+                    
                         currSize = 0;
                         
                         myfile.write((char *) &i, sizeof(short));
+                        currSize += 2;
                         i++;
                     }
                    
                     
                 }
             }
+            cout << "Offset: " << currSize << endl;
             myfile.close();
            
         }

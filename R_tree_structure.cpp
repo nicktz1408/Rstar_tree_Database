@@ -54,8 +54,8 @@ class Rtree{
            rec = new Record();
 
            short int *temp;
-           for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
-               if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+           for(long long int posInDisk = 0; posInDisk <= 32762 * 18 + 24026; ) {
+               if(posInDisk % 32762 == 0) { // reached startOfNextBlock
                    temp = new short();
                    readFile.read((char *) temp, sizeof(short));
                    posInDisk += 2;
@@ -72,8 +72,8 @@ class Rtree{
 
                Point p(coordsVector);
 
-               int blockId = posInDisk / 32770 + 1;
-               int line = (posInDisk % 32770 - 2) / (int)sizeof(Record) + 1;
+               int blockId = posInDisk / 32762 + 1;
+               int line = (posInDisk % 32762 - 2) / (int)sizeof(Record) + 1;
                int entityNumber = getEntityNumber(blockId, line);
 
                insert(p, entityNumber);

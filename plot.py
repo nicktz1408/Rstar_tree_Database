@@ -15,14 +15,14 @@ fKNN = open("statisticsKNN.txt", "r")
 for x in fRange:
     y = x.split(" ")
     ranges.append(y[0])
-    timesRangeIndex.append(y[1])
-    timesRangeSerial.append(y[2])
+    timesRangeIndex.append(int(y[1])*1.0/1000)
+    timesRangeSerial.append(int(y[2])*1.0/1000)
 
 for x in fKNN:
     y = x.split(" ")
     k.append(y[0])
-    timesKnnIndex.append(y[1])
-    timesKnnSerial.append(y[2])
+    timesKnnIndex.append(int(y[1])*1.0/1000)
+    timesKnnSerial.append(int(y[2])*1.0/1000)
 
 
 

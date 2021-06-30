@@ -44,21 +44,19 @@ public:
     }
 
     Record getRecordFromDatafile(int entityNumber){
-        Record output(entityNumber, { (double)entityNumber });
-        return output;
-//        Record output;
-//
-//        int blockNum = entityNumber >> 27;
-//        int recordNum = (entityNumber << 5) >> 5;
-//        ifstream myFile;
-//        myFile.open("datafile.dat",ios::out | ios::binary );
-//
-//        int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
-//        myFile.seekg(index, myFile.beg);
-//        myFile.read((char *)&output, sizeof(Record));
-//
-//        myFile.close();
-//        return output;
+       Record output;
+
+       int blockNum = entityNumber >> 27;
+       int recordNum = (entityNumber << 5) >> 5;
+       ifstream myFile;
+       myFile.open("datafile.dat",ios::out | ios::binary );
+
+       int index = (32770 * (blockNum - 1)) + sizeof(Record)*(recordNum-1);
+       myFile.seekg(index, myFile.beg);
+       myFile.read((char *)&output, sizeof(Record));
+
+       myFile.close();
+       return output;
     }
 
 
@@ -83,7 +81,6 @@ public:
 private:
     Node getNodeByBlockIdHelper(int id) {
         ifstream myFile;
-        cout<<"IndexFile"<<endl;
         
         myFile.open ("indexfile.dat", ios::out | ios::binary);
         int blockStart = (id - 1) * (int)sizeof(Node);
@@ -92,7 +89,6 @@ private:
         Node *node;
         node = new Node();
 
-        cout << sizeof(Node) << " " << sizeof(node) << endl;
 
         myFile.read ((char*) node, sizeof (Node));
 

@@ -27,9 +27,8 @@ vector <Record> getAllRecords() {
 
     short *temp;
 
-    for(long long int posInDisk = 0; posInDisk <= 32770 * 5; ) {
-        cout<<"Here"<<endl;
-        if(posInDisk % 32770 == 0) { // reached startOfNextBlock
+    for(long long int posInDisk = 0; posInDisk <= 32762 * 18 + 24026; ) {
+        if(posInDisk % 32762 == 0) { // reached startOfNextBlock
             temp = new short();
             datafile.read((char *) temp, sizeof(short));
             posInDisk += 2;
@@ -128,7 +127,7 @@ int main() {
         auto finish = std::chrono::high_resolution_clock::now();
 
         long long serialTime = serialSearchKNN(point3, k);
-        cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
+        //cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
     }
 
 
@@ -147,7 +146,7 @@ int main() {
         auto finish = std::chrono::high_resolution_clock::now();
 
         long long serialTime = serialSearchRange(rectangle);
-        //cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
+        cout << k <<" "<<std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count()<<" "<<serialTime<<endl;
     }
 
     return 0;

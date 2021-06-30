@@ -71,17 +71,13 @@ class Node{
         }
 
         void addChild(int blockID, Rectangle rec){
-            cout<<"addChild"<<endl;
-            cout<<capacity<<endl;
             rectangles[capacity] = { blockID, rec };
             capacity++;
-            cout<<"addChild"<<endl;
             
 
         }
 
         void modifiedNode(){
-            cout<<"Modified"<<endl;
             ofstream myfile;
             myfile.open ("indexfile.dat", ios::out | ios::binary);
 
