@@ -26,19 +26,9 @@ struct ABLinformation{
 class Rtree{
     public:
         int rootId = 1;
-
-        vector<string> simple_tokenizer(string s)
-        {
-            vector <string> splitString;
-            stringstream ss(s);
-            string word;
-            while (ss >> word) {
-                splitString.push_back(word);
-            }
-            return splitString;
-        }
-
         IndexfileUtilities *util;
+
+        
         Rtree(){
             
         }
@@ -89,11 +79,6 @@ class Rtree{
             entityNumber |= line;
 
             return entityNumber;
-        }
-
-        void extractDatafileInfoFromEntityNumber(unsigned int entityNumber, unsigned int &blockId, unsigned int &line) {
-            blockId = entityNumber >> 27;
-            line = entityNumber & ((1 << 28) - 1);
         }
 
         void insert(Point p, int entNum){
