@@ -4,6 +4,8 @@
 #include <fstream>
 using namespace std;
 
+
+#define dimensions 2
 #include "Rectangle.cpp"
 
 #ifndef NODE_CPP
@@ -17,6 +19,7 @@ class Node{
         bool isLeaf;
         pair<int, Rectangle> rectangles[51];
         Rectangle boundingBox;
+
         Node(){
             initializeRectVector();
             capacity = 0;
@@ -24,6 +27,7 @@ class Node{
             blockId = -1;
             isLeaf = true;
         }
+
         Node(Rectangle bounding, bool isLeafNode, vector<pair<int, Rectangle>> rec, int aParentId, int aBlockId, bool shouldInit){
             initializeRectVector();
             isLeaf = isLeafNode;
@@ -35,13 +39,21 @@ class Node{
             blockId = aBlockId;
         }
 
+        Point defaultPoint(){
+            vector<double> dim(dimensions);
+            Point point(dim);
+            return point;
+        }
+
         void initializeRectVector() {
             for(int i = 0; i < 51; i++) {
-                Point p({ 0, 0 });
+                Point p = defaultPoint();
                 Rectangle rec(p, p);
                 rectangles[i] = { 0, rec };
             }
         }
+
+        
 
         void setRectangles(vector<pair<int, Rectangle>> &rec, bool shouldInit) {
             for(int i = 0; i < rec.size(); i++) {
@@ -49,8 +61,8 @@ class Node{
             }
             capacity = (shouldInit ? rec.size() : 0);
 
+            Point p = defaultPoint();
             for(int i = (int)rec.size(); i < 51; i++) {
-                Point p({ 0, 0 });
                 Rectangle rec(p, p);
                 rectangles[i] = { 0, rec };
             }
@@ -64,10 +76,6 @@ class Node{
             }
 
             return out;
-        }
-
-        void updateBounds(Rectangle aBoundingBox) {
-            boundingBox = aBoundingBox;
         }
 
         void addChild(int blockID, Rectangle rec){
@@ -85,10 +93,6 @@ class Node{
             myfile.seekp(blockStart, ios::beg);
             myfile.write((char *) this, sizeof(Node));
             myfile.close();
-        }
-        void updateBoundingBox(Rectangle rec){
-            updateBounds(boundingBox);
-            modifiedNode();
         }
 
 };

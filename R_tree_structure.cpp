@@ -204,7 +204,7 @@ class Rtree{
                 Rectangle firBig = constructBig(fir), secBig = constructBig(sec);
 
                 aNode.setRectangles(fir, true);
-                aNode.boundingBox = firBig;
+                util->updateBounds(&aNode, firBig);
                 aNode.modifiedNode();
                 
                 int otherNodeId = util->newBlockID(secBig,aNode.isLeaf, sec, true);
@@ -472,11 +472,8 @@ class Rtree{
         }
 
     
-
-
         
         vector<Record> knnQuery(Point point, int K){
-            // vector <datafileData>
             vector <struct ABLinformation> indexFileAns = knnQueryUtility(rootId, point,  K);
             vector <Record> eligibleRecords(0);
 

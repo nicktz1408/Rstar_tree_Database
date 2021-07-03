@@ -14,6 +14,7 @@ using namespace std;
 class IndexfileUtilities {
 public:
     int nextId;
+
     IndexfileUtilities(){
         nextId = 1;
     }
@@ -31,7 +32,7 @@ public:
     }
 
     void modifiedBlockId(Node aNode, int id){
-        fstream myfile;
+        ofstream myfile;
         myfile.open ("indexfile.dat", ios::out | ios::binary);
         int blockStart = (id - 1) * (int)sizeof(Node);
         myfile.seekp(blockStart, ios::beg);
@@ -65,7 +66,7 @@ public:
         int ndId = node->blockId;
         int prnId = node->parentId;
 
-        if(prnId != 0){
+        if(prnId != -1){
             Node parentNode = this->getNodeByBlockId(prnId);
             for(int i=0;i<parentNode.capacity;i++){
                 if(parentNode.rectangles[i].first == ndId){
