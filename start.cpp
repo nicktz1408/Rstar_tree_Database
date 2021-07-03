@@ -10,6 +10,8 @@
 
 using namespace std;
 
+
+//Υπολογισμός ευκλίδειας απόστασης στον ν-διάστατο χώρο
 double EuclideanDistance(Point a, Point b){
     double result = 0;
     for(int i=0;i<dimension;i++){
@@ -18,6 +20,8 @@ double EuclideanDistance(Point a, Point b){
     return result;
 }
 
+
+//Φόρτωση των δεδομένων στην μνήμη
 vector <Record> getAllRecords() {
     ifstream datafile;
     datafile.open("datafile.dat", ios::out | ios:: binary);
@@ -44,6 +48,8 @@ vector <Record> getAllRecords() {
     return records;
 }
 
+
+// Συνάρτηση για την μέτρηση του χρόνου της σειριακής επίλυσης του ερωτήματος περιοχής
 long long serialSearchRange(Rectangle rec){
     auto start = std::chrono::high_resolution_clock::now();
     vector <Record> records = getAllRecords();
@@ -63,6 +69,8 @@ long long serialSearchRange(Rectangle rec){
     return std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start).count();
 }
 
+
+// Συνάρτηση για την μέτρηση του χρόνου της σειριακής επίλυσης του ερωτήματος των Κ πλησιέστερων γειτόνων
 long long serialSearchKNN(Point p, int K){
     auto start = std::chrono::high_resolution_clock::now();
     vector <Record> records = getAllRecords();
@@ -102,12 +110,7 @@ void analyzeData() {
     cout << "Lat: " << minLat << " " << maxLat << " " << sumLat / records.size() << endl;
     cout << "Lng: " << minLng << " " << maxLng << " " << sumLng / records.size() << endl;
 }
-void printData(){
-    vector <Record> records = getAllRecords();
-    for(int i=0;i<records.size(); i++){
-        cout << records[i].getCoords()[0]<<" "<< records[i].getCoords()[1]<<endl;
-    }
-}
+
 
 int main() {
     using std::chrono::high_resolution_clock;
