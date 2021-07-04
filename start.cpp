@@ -139,7 +139,7 @@ int main() {
 
     for(int k = 1; k <= 50; k++) {
         vector<double> newCoords1 = {medianDim[0] - (40.7062 - 40.4335)*k / 50, medianDim[1] - (-74.0105 - (-74.0799))*k / 50};
-        vector<double> newCoords2 = {medianDim[0] + (40.7766 - 40.7062)*k / 50, medianDim[1] - (-73.9613 - (-74.0105))*k / 50};
+        vector<double> newCoords2 = {medianDim[0] + (40.7766 - 40.7062)*k / 50, medianDim[1] + (-73.9613 - (-74.0105))*k / 50};
 
         point2.setCoords(newCoords1);
         point3.setCoords(newCoords2);
