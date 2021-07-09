@@ -1,1 +1,2 @@
-# Rstar_tree_Database
+# R* tree
+R* tree implementation in C++ and trial testing using datapoints from OpenStreetMap in the Area of NYC.
